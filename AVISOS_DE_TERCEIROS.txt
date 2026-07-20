@@ -1,0 +1,20 @@
+AVISOS DE COMPONENTES DE TERCEIROS
+==================================
+
+Este aplicativo portable inclui o executável FFmpeg para Windows fornecido por
+https://www.gyan.dev/ffmpeg/builds/, uma fonte de builds indicada pela página
+oficial do projeto FFmpeg: https://ffmpeg.org/download.html
+
+Esse build do FFmpeg é distribuído sob a GNU General Public License versão 3
+(GPLv3). O texto completo da licença é incluído no aplicativo como GPL-3.0.txt.
+Informações e código-fonte do FFmpeg estão disponíveis em:
+
+https://ffmpeg.org/
+https://ffmpeg.org/download.html#get-sources
+
+Os demais componentes mantêm suas respectivas licenças. Consulte:
+
+Python: https://docs.python.org/3/license.html
+Pillow: https://github.com/python-pillow/Pillow/blob/main/LICENSE
+ImageHash: https://github.com/JohannesBuchner/imagehash
+PyInstaller: https://pyinstaller.org/en/stable/license.html
