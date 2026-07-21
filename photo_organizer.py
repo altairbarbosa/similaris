@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Find duplicate photos, organize files, convert media, and create ZIPs."""
+"""Find duplicate photos, organize images, and convert media."""
 
 from __future__ import annotations
 
@@ -10,12 +10,12 @@ import shutil
 import subprocess
 import sys
 import uuid
-import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 
 try:
     from PIL import Image, ImageFilter, ImageOps, UnidentifiedImageError
+    import cv2
     import imagehash
     import numpy as np
 except ImportError:
@@ -45,6 +45,10 @@ class Photo:
     ahash: object
     cinza: object
     bordas: object
+    grayscale: object
+    color_histogram: object
+    keypoints: object
+    descriptors: object
 
     @property
     def area(self) -> int:
@@ -59,9 +63,7 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--apply", "--aplicar", action="store_true", help="modify files")
     parser.add_argument("--skip-duplicates", "--nao-separar", action="store_true")
     parser.add_argument("--rename", "--renomear", action="store_true", dest="rename_photos")
-    parser.add_argument("--zip", action="store_true", dest="make_zip")
     parser.add_argument("--duplicates-folder", "--destino", default="duplicates")
-    parser.add_argument("--zip-name", "--nome-zip", default="photos.zip")
     parser.add_argument(
         "--convert-images", "--converter-imagens", action="store_true", dest="convert_images"
     )
@@ -84,6 +86,10 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         "--video-quality", "--qualidade-video", type=int, default=20, metavar="CRF",
     )
     parser.add_argument("--language", choices=("pt-BR", "en-US", "es-ES"), default="en-US")
+    parser.add_argument(
+        "--sensitivity", choices=("conservative", "balanced", "sensitive"),
+        default="balanced", help="duplicate detection sensitivity",
+    )
     return parser.parse_args(argv)
 
 
@@ -107,6 +113,13 @@ def analyze(caminho: Path) -> Photo:
         imagem = ImageOps.exif_transpose(origem)
         imagem.thumbnail((512, 512))
         imagem = imagem.convert("RGB")
+        rgb_array = np.asarray(imagem, dtype=np.uint8)
+        grayscale = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2GRAY)
+        orb = cv2.ORB_create(nfeatures=1200, scaleFactor=1.2, nlevels=8, fastThreshold=12)
+        keypoints, descriptors = orb.detectAndCompute(grayscale, None)
+        hsv = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2HSV)
+        color_histogram = cv2.calcHist([hsv], [0, 1], None, [24, 16], [0, 180, 0, 256])
+        cv2.normalize(color_histogram, color_histogram)
         cinza_imagem = ImageOps.autocontrast(ImageOps.grayscale(imagem)).resize(
             (64, 64), Image.Resampling.LANCZOS
         )
@@ -128,14 +141,59 @@ def analyze(caminho: Path) -> Photo:
             ahash=imagehash.average_hash(imagem, hash_size=8),
             cinza=assinatura(cinza_imagem),
             bordas=assinatura(bordas_imagem),
+            grayscale=grayscale,
+            color_histogram=color_histogram.flatten().astype(np.float32),
+            keypoints=tuple(keypoints),
+            descriptors=descriptors,
         )
 
 
-def are_similar(a: Photo, b: Photo) -> bool:
+@dataclass(frozen=True)
+class MatchEvidence:
+    duplicate: bool
+    confidence: float
+    method: str
+    inliers: int = 0
+    overlap: float = 0.0
+    changed_fraction: float = 0.0
+
+
+SENSITIVITY = {
+    "conservative": {"hash": 0.94, "geometry": 0.88, "inlier_ratio": 0.48, "inliers": 16, "changed": 0.035},
+    "balanced": {"hash": 0.90, "geometry": 0.80, "inlier_ratio": 0.36, "inliers": 11, "changed": 0.055},
+    "sensitive": {"hash": 0.86, "geometry": 0.72, "inlier_ratio": 0.27, "inliers": 8, "changed": 0.10},
+}
+
+
+def _normalized_correlation(first: np.ndarray, second: np.ndarray) -> float:
+    first_values = first.astype(np.float32).reshape(-1)
+    second_values = second.astype(np.float32).reshape(-1)
+    first_values -= first_values.mean()
+    second_values -= second_values.mean()
+    denominator = float(np.linalg.norm(first_values) * np.linalg.norm(second_values))
+    return float(np.dot(first_values, second_values) / denominator) if denominator else 0.0
+
+
+def _structural_similarity(first: np.ndarray, second: np.ndarray, mask: np.ndarray) -> float:
+    valid = mask > 0
+    if int(valid.sum()) < 256:
+        return 0.0
+    x = first[valid].astype(np.float64)
+    y = second[valid].astype(np.float64)
+    mean_x, mean_y = x.mean(), y.mean()
+    variance_x, variance_y = x.var(), y.var()
+    covariance = ((x - mean_x) * (y - mean_y)).mean()
+    c1, c2 = (0.01 * 255) ** 2, (0.03 * 255) ** 2
+    return float(
+        ((2 * mean_x * mean_y + c1) * (2 * covariance + c2))
+        / ((mean_x**2 + mean_y**2 + c1) * (variance_x + variance_y + c2))
+    )
+
+
+def _global_evidence(a: Photo, b: Photo, sensitivity: str) -> MatchEvidence:
     proporcao_a = a.largura / a.altura
     proporcao_b = b.largura / b.altura
-    if abs(proporcao_a - proporcao_b) / proporcao_a > 0.006:
-        return False
+    aspect_delta = abs(proporcao_a - proporcao_b) / max(proporcao_a, proporcao_b)
 
     pd = a.phash - b.phash
     dd = a.dhash - b.dhash
@@ -146,45 +204,161 @@ def are_similar(a: Photo, b: Photo) -> bool:
     correlacao_bordas = float(
         np.dot(a.bordas.astype(np.float32), b.bordas.astype(np.float32)) / 4096
     )
+    histogram = float(cv2.compareHist(a.color_histogram, b.color_histogram, cv2.HISTCMP_CORREL))
+    hash_score = max(0.0, 1.0 - (pd / 256.0))
+    global_score = (
+        0.34 * hash_score + 0.26 * max(0.0, correlacao_cinza)
+        + 0.25 * max(0.0, correlacao_bordas) + 0.15 * max(0.0, histogram)
+    )
 
     # O primeiro limite encontra recompressões quase idênticas. O segundo é
     # tolerante a cor, brilho, contraste e filtros, mas exige bordas coincidentes
     # para não confundir fotografias consecutivas com poses diferentes.
-    quase_identica = pd <= 10 and dd <= 20 and ad <= 8 and correlacao_cinza >= 0.94
-    editada = pd <= 35 and correlacao_cinza >= 0.88 and correlacao_bordas >= 0.75
-    return quase_identica or editada
+    almost_identical = (
+        aspect_delta <= 0.015 and pd <= 10 and dd <= 20 and ad <= 8
+        and correlacao_cinza >= 0.94
+    )
+    threshold = SENSITIVITY[sensitivity]["hash"]
+    duplicate = almost_identical or (aspect_delta <= 0.03 and global_score >= threshold)
+    return MatchEvidence(duplicate, min(1.0, global_score), "global")
 
 
-def group_duplicates(fotos: list[Photo]) -> list[list[int]]:
-    pais = list(range(len(fotos)))
+def _is_geometric_candidate(a: Photo, b: Photo) -> bool:
+    """Cheap, permissive gate that keeps expensive feature matching off clear negatives."""
+    hash_similarity = 1.0 - ((a.phash - b.phash) / 256.0)
+    histogram_similarity = float(
+        cv2.compareHist(a.color_histogram, b.color_histogram, cv2.HISTCMP_CORREL)
+    )
+    aspect_a = a.largura / a.altura
+    aspect_b = b.largura / b.altura
+    same_orientation = abs(aspect_a - aspect_b) / max(aspect_a, aspect_b) <= 0.35
+    rotated_orientation = abs(aspect_a - (1.0 / aspect_b)) / max(aspect_a, 1.0 / aspect_b) <= 0.35
 
-    def raiz(indice: int) -> int:
-        while pais[indice] != indice:
-            pais[indice] = pais[pais[indice]]
-            indice = pais[indice]
-        return indice
+    # A deliberately wide recall gate. Geometry remains the final authority.
+    return (
+        hash_similarity >= 0.56
+        or histogram_similarity >= 0.58
+        or ((same_orientation or rotated_orientation) and hash_similarity >= 0.48)
+    )
 
-    def unir(a: int, b: int) -> None:
-        a, b = raiz(a), raiz(b)
-        if a != b:
-            pais[b] = a
 
-    hashes: dict[str, list[int]] = {}
-    for indice, foto in enumerate(fotos):
-        hashes.setdefault(foto.hash_arquivo, []).append(indice)
-    for indices in hashes.values():
-        for indice in indices[1:]:
-            unir(indices[0], indice)
+def _symmetric_ratio_matches(a: Photo, b: Photo) -> list[object]:
+    """Return Lowe-ratio matches that also agree in the reverse direction."""
+    matcher = cv2.BFMatcher(cv2.NORM_HAMMING)
+    forward_pairs = matcher.knnMatch(a.descriptors, b.descriptors, k=2)
+    reverse_pairs = matcher.knnMatch(b.descriptors, a.descriptors, k=2)
+    forward = {
+        match.queryIdx: match
+        for pair in forward_pairs if len(pair) == 2
+        for match in pair[:1] if match.distance < 0.78 * pair[1].distance
+    }
+    reverse = {
+        match.queryIdx: match
+        for pair in reverse_pairs if len(pair) == 2
+        for match in pair[:1] if match.distance < 0.78 * pair[1].distance
+    }
+    return [
+        match for query_index, match in forward.items()
+        if match.trainIdx in reverse and reverse[match.trainIdx].trainIdx == query_index
+    ]
 
-    for i, foto_a in enumerate(fotos):
-        for j in range(i + 1, len(fotos)):
-            if are_similar(foto_a, fotos[j]):
-                unir(i, j)
 
-    grupos: dict[int, list[int]] = {}
-    for indice in range(len(fotos)):
-        grupos.setdefault(raiz(indice), []).append(indice)
-    return [grupo for grupo in grupos.values() if len(grupo) > 1]
+def _geometric_evidence(a: Photo, b: Photo, sensitivity: str) -> MatchEvidence:
+    if a.descriptors is None or b.descriptors is None:
+        return MatchEvidence(False, 0.0, "geometry")
+    if len(a.keypoints) < 8 or len(b.keypoints) < 8:
+        return MatchEvidence(False, 0.0, "geometry")
+
+    good = _symmetric_ratio_matches(a, b)
+    if len(good) < 8:
+        return MatchEvidence(False, 0.0, "geometry")
+
+    source_points = np.float32([b.keypoints[match.trainIdx].pt for match in good]).reshape(-1, 1, 2)
+    target_points = np.float32([a.keypoints[match.queryIdx].pt for match in good]).reshape(-1, 1, 2)
+    robust_method = getattr(cv2, "USAC_MAGSAC", cv2.RANSAC)
+    homography, inlier_mask = cv2.findHomography(source_points, target_points, robust_method, 3.5)
+    if homography is None or inlier_mask is None:
+        return MatchEvidence(False, 0.0, "geometry")
+
+    inliers = int(inlier_mask.sum())
+    inlier_ratio = inliers / len(good)
+    height, width = a.grayscale.shape
+
+    # Reject degenerate or implausible projections before the expensive warp.
+    source_height, source_width = b.grayscale.shape
+    corners = np.float32(
+        [[0, 0], [source_width - 1, 0], [source_width - 1, source_height - 1], [0, source_height - 1]]
+    ).reshape(-1, 1, 2)
+    projected = cv2.perspectiveTransform(corners, homography).reshape(-1, 2)
+    projected_area = abs(float(cv2.contourArea(projected.astype(np.float32))))
+    area_ratio = projected_area / float(width * height)
+    if not cv2.isContourConvex(projected.astype(np.float32)) or not 0.12 <= area_ratio <= 8.0:
+        return MatchEvidence(False, 0.0, "geometry", inliers)
+
+    aligned = cv2.warpPerspective(b.grayscale, homography, (width, height))
+    source_mask = np.full(b.grayscale.shape, 255, dtype=np.uint8)
+    overlap_mask = cv2.warpPerspective(source_mask, homography, (width, height))
+    overlap = float(np.count_nonzero(overlap_mask)) / float(width * height)
+    if overlap < 0.28:
+        return MatchEvidence(False, 0.0, "geometry", inliers, overlap)
+
+    structural = _structural_similarity(a.grayscale, aligned, overlap_mask)
+    valid = overlap_mask > 0
+    correlation = _normalized_correlation(a.grayscale[valid], aligned[valid])
+    first_values = a.grayscale[valid].astype(np.float32)
+    second_values = aligned[valid].astype(np.float32)
+    first_values = (first_values - first_values.mean()) / (first_values.std() + 1e-6)
+    second_values = (second_values - second_values.mean()) / (second_values.std() + 1e-6)
+    changed_fraction = float(np.mean(np.abs(first_values - second_values) > 0.5))
+    geometry_score = (
+        0.38 * min(1.0, inlier_ratio / 0.65)
+        + 0.25 * max(0.0, structural)
+        + 0.25 * max(0.0, correlation)
+        + 0.12 * min(1.0, overlap / 0.75)
+    ) * max(0.0, 1.0 - changed_fraction)
+    limits = SENSITIVITY[sensitivity]
+    duplicate = (
+        inliers >= limits["inliers"] and inlier_ratio >= limits["inlier_ratio"]
+        and geometry_score >= limits["geometry"] and changed_fraction <= limits["changed"]
+    )
+    return MatchEvidence(
+        duplicate, min(1.0, geometry_score), "geometry", inliers, overlap, changed_fraction
+    )
+
+
+def compare_photos(a: Photo, b: Photo, sensitivity: str = "balanced") -> MatchEvidence:
+    if a.hash_arquivo == b.hash_arquivo:
+        return MatchEvidence(True, 1.0, "sha256")
+    global_result = _global_evidence(a, b, sensitivity)
+    if global_result.duplicate:
+        return global_result
+    if not _is_geometric_candidate(a, b):
+        return global_result
+    geometric_result = _geometric_evidence(a, b, sensitivity)
+    # A valid geometric confirmation must never be discarded merely because two
+    # unrelated confidence scales happen to have different numeric values.
+    if geometric_result.duplicate:
+        return geometric_result
+    return geometric_result if geometric_result.confidence >= global_result.confidence else global_result
+
+
+def are_similar(a: Photo, b: Photo, sensitivity: str = "balanced") -> bool:
+    return compare_photos(a, b, sensitivity).duplicate
+
+
+def group_duplicates(fotos: list[Photo], sensitivity: str = "balanced") -> list[list[int]]:
+    # The highest-quality image is the anchor. Candidates must match the anchor,
+    # which prevents A~B~C transitive chains from merging unrelated endpoints.
+    ordered = sorted(range(len(fotos)), key=lambda i: (fotos[i].area, fotos[i].tamanho), reverse=True)
+    groups: list[list[int]] = []
+    for index in ordered:
+        for group in groups:
+            if are_similar(fotos[group[0]], fotos[index], sensitivity):
+                group.append(index)
+                break
+        else:
+            groups.append([index])
+    return [group for group in groups if len(group) > 1]
 
 
 def available_path(destino: Path) -> Path:
@@ -233,20 +407,6 @@ def rename_photos(fotos: list[Path]) -> list[Path]:
         temporario.rename(alvo)
         resultado.append(alvo)
     return resultado
-
-
-def create_zip(fotos: list[Path], destino: Path) -> None:
-    temporario = destino.with_name(f".{destino.name}.{uuid.uuid4().hex}.tmp")
-    try:
-        with zipfile.ZipFile(
-            temporario, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6, allowZip64=True
-        ) as arquivo_zip:
-            for foto in fotos:
-                arquivo_zip.write(foto, arcname=foto.name)
-        os.replace(temporario, destino)
-    finally:
-        if temporario.exists():
-            temporario.unlink()
 
 
 def converted_name(origem: Path, destino: Path, extensao: str) -> Path:
@@ -340,7 +500,7 @@ OUTPUT_TRANSLATIONS = {
         "conversão(ões):": "conversion(s)", "Use --aplicar para realizar as conversões.": "Use --apply to perform the conversions.",
         "Nenhuma imagem compatível encontrada.": "No compatible images found.", "renomear as imagens": "rename images",
         "criar": "create", "Simulação:": "Simulation:", "Use --aplicar para realizar as alterações.": "Use --apply to make changes.",
-        "Renomeadas": "Renamed", "imagens.": "images.", "ZIP criado:": "ZIP created:", "Analisando": "Analyzing",
+        "Renomeadas": "Renamed", "imagens.": "images.", "Analisando": "Analyzing",
         "imagens em": "images in", "processadas": "processed", "Encontrados": "Found", "grupos e": "groups and",
         "arquivos repetidos.": "duplicate files.", "Grupo": "Group", "manter": "keep", "separar": "separate",
         "Aviso:": "Warning:", "arquivo(s) não puderam ser lidos:": "file(s) could not be read:",
@@ -357,7 +517,7 @@ OUTPUT_TRANSLATIONS = {
         "conversão(ões):": "conversión(es):", "Use --aplicar para realizar as conversões.": "Use --apply para realizar las conversiones.",
         "Nenhuma imagem compatível encontrada.": "No se encontraron imágenes compatibles.", "renomear as imagens": "renombrar las imágenes",
         "criar": "crear", "Simulação:": "Simulación:", "Use --aplicar para realizar as alterações.": "Use --apply para realizar los cambios.",
-        "Renomeadas": "Renombradas", "imagens.": "imágenes.", "ZIP criado:": "ZIP creado:", "Analisando": "Analizando",
+        "Renomeadas": "Renombradas", "imagens.": "imágenes.", "Analisando": "Analizando",
         "imagens em": "imágenes en", "processadas": "procesadas", "Encontrados": "Encontrados", "grupos e": "grupos y",
         "arquivos repetidos.": "archivos duplicados.", "Grupo": "Grupo", "manter": "conservar", "separar": "separar",
         "Aviso:": "Aviso:", "arquivo(s) não puderam ser lidos:": "archivo(s) no se pudieron leer:",
@@ -424,17 +584,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.convert_only and not quer_converter:
         localized_print(args.language, "--somente-converter exige uma opção --converter-*.", file=sys.stderr)
         return 2
-    if quer_converter and not args.apply:
-        tipos = []
-        if args.convert_images or args.convert_all:
-            tipos.append("imagens para JPG")
-        if args.convert_videos or args.convert_all:
-            tipos.append("vídeos para MP4")
-        localized_print(args.language, f"Conversão solicitada: {' e '.join(tipos)}.")
-        localized_print(args.language, "Simulação: os originais seriam preservados e os resultados iriam para "
-              f"{pasta / args.converted_folder}.")
-
-    if quer_converter and args.apply:
+    if quer_converter:
         localized_print(args.language, f"Convertendo arquivos para {pasta / args.converted_folder}...")
         n_imagens, n_videos, falhas_conversao = run_conversions(args, pasta)
         localized_print(args.language, f"Conversões concluídas: {n_imagens} imagem(ns), {n_videos} vídeo(s).")
@@ -444,8 +594,6 @@ def main(argv: list[str] | None = None) -> int:
                 localized_print(args.language, f"  {falha}")
 
     if args.convert_only:
-        if not args.apply:
-            localized_print(args.language, "Use --aplicar para realizar as conversões.")
         return 0
 
     caminhos = photos_in_folder(pasta)
@@ -457,8 +605,6 @@ def main(argv: list[str] | None = None) -> int:
         operacoes = []
         if args.rename_photos:
             operacoes.append("rename_photos as imagens")
-        if args.make_zip:
-            operacoes.append(f"criar {args.zip_name}")
         if not args.apply:
             if operacoes:
                 localized_print(args.language, "Simulação: " + " e ".join(operacoes) + ".")
@@ -468,9 +614,6 @@ def main(argv: list[str] | None = None) -> int:
         if args.rename_photos:
             restantes = rename_photos(restantes)
             localized_print(args.language, f"Renomeadas {len(restantes)} imagens.")
-        if args.make_zip:
-            create_zip(restantes, pasta / args.zip_name)
-            localized_print(args.language, f"ZIP criado: {pasta / args.zip_name}")
         return 0
 
     localized_print(args.language, f"Analisando {len(caminhos)} imagens em {pasta}...")
@@ -484,7 +627,7 @@ def main(argv: list[str] | None = None) -> int:
         if numero % 100 == 0:
             localized_print(args.language, f"  {numero}/{len(caminhos)} processadas")
 
-    grupos = group_duplicates(fotos)
+    grupos = group_duplicates(fotos, args.sensitivity)
     quantidade = sum(len(grupo) - 1 for grupo in grupos)
     localized_print(args.language, f"Encontrados {len(grupos)} grupos e {quantidade} arquivos repetidos.")
     for numero, grupo in enumerate(grupos, 1):
@@ -507,14 +650,10 @@ def main(argv: list[str] | None = None) -> int:
     restantes = photos_in_folder(pasta)
     if args.rename_photos:
         restantes = rename_photos(restantes)
-    if args.make_zip:
-        create_zip(restantes, pasta / args.zip_name)
 
     localized_print(args.language, f"\nConcluído: {len(movidas)} repetida(s) movida(s) para {destino}.")
     if args.rename_photos:
         localized_print(args.language, f"Renomeadas {len(restantes)} imagens.")
-    if args.make_zip:
-        localized_print(args.language, f"ZIP criado: {pasta / args.zip_name}")
     return 0
 
 

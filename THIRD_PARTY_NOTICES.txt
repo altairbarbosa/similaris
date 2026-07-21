@@ -1,6 +1,9 @@
 THIRD-PARTY COMPONENT NOTICES
 =============================
 
+Similaris source code is licensed under the MIT License. The MIT License does
+not replace or alter the licenses of the third-party components listed below.
+
 The portable Windows application includes an FFmpeg executable supplied by
 https://www.gyan.dev/ffmpeg/builds/, a build source listed by the official
 FFmpeg project at https://ffmpeg.org/download.html.
@@ -21,4 +24,5 @@ Python: https://docs.python.org/3/license.html
 Pillow: https://github.com/python-pillow/Pillow/blob/main/LICENSE
 ImageHash: https://github.com/JohannesBuchner/imagehash
 NumPy: https://numpy.org/doc/stable/license.html
+OpenCV: https://opencv.org/license/
 PyInstaller: https://pyinstaller.org/en/stable/license.html

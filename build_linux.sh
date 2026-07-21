@@ -73,6 +73,7 @@ echo "Building dist/Similaris..."
   --add-binary "$FFMPEG_BIN:." \
   --add-data "$GPL_FILE:." \
   --add-data "THIRD_PARTY_NOTICES.txt:." \
+  --add-data "LICENSE:." \
   --add-data "assets/similaris-icon.png:assets" \
   app.py
 
