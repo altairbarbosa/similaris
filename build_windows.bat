@@ -55,6 +55,7 @@ call .venv-windows\Scripts\pyinstaller.exe --noconfirm --clean --onefile --windo
   --add-binary "%FFMPEG_EXE%;." ^
   --add-data "%TOOLS_DIR%\GPL-3.0.txt;." ^
   --add-data "THIRD_PARTY_NOTICES.txt;." ^
+  --add-data "LICENSE;." ^
   --add-data "assets\similaris-icon.png;assets" ^
   app.py
 if errorlevel 1 goto :build_error
