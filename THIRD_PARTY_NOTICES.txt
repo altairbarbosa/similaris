@@ -1,0 +1,24 @@
+THIRD-PARTY COMPONENT NOTICES
+=============================
+
+The portable Windows application includes an FFmpeg executable supplied by
+https://www.gyan.dev/ffmpeg/builds/, a build source listed by the official
+FFmpeg project at https://ffmpeg.org/download.html.
+
+The portable Linux application includes a static FFmpeg executable supplied by
+https://johnvansickle.com/ffmpeg/.
+
+These FFmpeg builds are distributed under the GNU General Public License,
+version 3 (GPLv3). The complete license text is bundled with the application as
+GPL-3.0.txt. FFmpeg information and source code are available at:
+
+https://ffmpeg.org/
+https://ffmpeg.org/download.html#get-sources
+
+Other components retain their respective licenses:
+
+Python: https://docs.python.org/3/license.html
+Pillow: https://github.com/python-pillow/Pillow/blob/main/LICENSE
+ImageHash: https://github.com/JohannesBuchner/imagehash
+NumPy: https://numpy.org/doc/stable/license.html
+PyInstaller: https://pyinstaller.org/en/stable/license.html
