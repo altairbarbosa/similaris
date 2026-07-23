@@ -22,14 +22,15 @@ if not exist "%TOOLS_DIR%" mkdir "%TOOLS_DIR%"
 
 if not exist "%FFMPEG_ZIP%" (
   echo Downloading the portable FFmpeg build...
-  powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '%FFMPEG_URL%' -OutFile '%FFMPEG_ZIP%'"
+  curl.exe --fail --location --retry 5 --retry-all-errors --output "%FFMPEG_ZIP%" "%FFMPEG_URL%"
   if errorlevel 1 goto :ffmpeg_error
 )
 
 echo Verifying FFmpeg integrity...
+curl.exe --fail --location --retry 5 --retry-all-errors --output "%FFMPEG_SHA%" "%FFMPEG_URL%.sha256"
+if errorlevel 1 goto :ffmpeg_error
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '%FFMPEG_URL%.sha256' -OutFile '%FFMPEG_SHA%'; $expected=((Get-Content '%FFMPEG_SHA%' -Raw).Trim() -split '\s+')[0].ToLower(); $actual=(Get-FileHash '%FFMPEG_ZIP%' -Algorithm SHA256).Hash.ToLower(); if ($expected -ne $actual) { Write-Error 'FFmpeg SHA-256 mismatch'; exit 1 }"
+    "$expected=((Get-Content '%FFMPEG_SHA%' -Raw).Trim() -split '\s+')[0].ToLower(); $actual=(Get-FileHash '%FFMPEG_ZIP%' -Algorithm SHA256).Hash.ToLower(); if ($expected -ne $actual) { Write-Error 'FFmpeg SHA-256 mismatch'; exit 1 }"
 if errorlevel 1 goto :ffmpeg_error
 
 echo Extracting build components...
@@ -43,8 +44,7 @@ if not defined FFMPEG_EXE goto :ffmpeg_error
 
 if not exist "%REALESRGAN_ZIP%" (
   echo Downloading the portable Real-ESRGAN engine...
-  powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '%REALESRGAN_URL%' -OutFile '%REALESRGAN_ZIP%'"
+  curl.exe --fail --location --retry 5 --retry-all-errors --output "%REALESRGAN_ZIP%" "%REALESRGAN_URL%"
   if errorlevel 1 goto :enhancement_error
 )
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
@@ -60,14 +60,15 @@ for /r "%REALESRGAN_DIR%" %%F in (vcomp140.dll) do if exist "%%F" set "VCOMP_DLL
 if not defined REALESRGAN_EXE goto :enhancement_error
 if not defined REALESRGAN_MODELS goto :enhancement_error
 if not defined VCOMP_DLL goto :enhancement_error
+curl.exe --fail --location --retry 5 --retry-all-errors --output "%TOOLS_DIR%\REALESRGAN-LICENSE.txt" "%REALESRGAN_LICENSE_URL%"
+if errorlevel 1 goto :enhancement_error
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '%REALESRGAN_LICENSE_URL%' -OutFile '%TOOLS_DIR%\REALESRGAN-LICENSE.txt'; if ((Get-FileHash '%TOOLS_DIR%\REALESRGAN-LICENSE.txt' -Algorithm SHA256).Hash.ToLower() -ne '5abb941454de437b0e90d78dcb72e3688f74e14bcd4e24393273cb5cd0e9c937') { exit 1 }"
+  "if ((Get-FileHash '%TOOLS_DIR%\REALESRGAN-LICENSE.txt' -Algorithm SHA256).Hash.ToLower() -ne '5abb941454de437b0e90d78dcb72e3688f74e14bcd4e24393273cb5cd0e9c937') { exit 1 }"
 if errorlevel 1 goto :enhancement_error
 
 if not exist "%TOOLS_DIR%\GPL-3.0.txt" (
   echo Downloading the FFmpeg license...
-  powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri 'https://www.gnu.org/licenses/gpl-3.0.txt' -OutFile '%TOOLS_DIR%\GPL-3.0.txt'"
+  curl.exe --fail --location --retry 5 --retry-all-errors --output "%TOOLS_DIR%\GPL-3.0.txt" "https://www.gnu.org/licenses/gpl-3.0.txt"
   if errorlevel 1 goto :ffmpeg_error
 )
 
