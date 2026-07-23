@@ -46,17 +46,17 @@ mkdir -p "$TOOLS_DIR"
 
 if [[ ! -f "$FFMPEG_ARCHIVE" ]]; then
   echo "Downloading static FFmpeg for Linux..."
-  curl --fail --location --progress-bar "$FFMPEG_URL" --output "$FFMPEG_ARCHIVE"
+  curl --fail --location --retry 5 --retry-all-errors --progress-bar "$FFMPEG_URL" --output "$FFMPEG_ARCHIVE"
 fi
 
 if [[ ! -f "$REALESRGAN_ARCHIVE" ]]; then
   echo "Downloading the portable Real-ESRGAN engine..."
-  curl --fail --location --progress-bar "$REALESRGAN_URL" --output "$REALESRGAN_ARCHIVE"
+  curl --fail --location --retry 5 --retry-all-errors --progress-bar "$REALESRGAN_URL" --output "$REALESRGAN_ARCHIVE"
 fi
 echo "$REALESRGAN_SHA256  $REALESRGAN_ARCHIVE" | sha256sum --check --status
 
 echo "Verifying FFmpeg integrity..."
-curl --fail --location --silent --show-error "$FFMPEG_URL.md5" --output "$FFMPEG_MD5"
+curl --fail --location --retry 5 --retry-all-errors --silent --show-error "$FFMPEG_URL.md5" --output "$FFMPEG_MD5"
 (
   cd "$TOOLS_DIR"
   sed "s#  .*#  $(basename "$FFMPEG_ARCHIVE")#" "$(basename "$FFMPEG_MD5")" | md5sum --check --status
@@ -78,7 +78,7 @@ if [[ -z "$REALESRGAN_BIN" || -z "$REALESRGAN_MODELS" ]]; then
   exit 1
 fi
 chmod +x "$REALESRGAN_BIN"
-curl --fail --location --silent --show-error "$REALESRGAN_LICENSE_URL" --output "$TOOLS_DIR/REALESRGAN-LICENSE.txt"
+curl --fail --location --retry 5 --retry-all-errors --silent --show-error "$REALESRGAN_LICENSE_URL" --output "$TOOLS_DIR/REALESRGAN-LICENSE.txt"
 echo "$REALESRGAN_LICENSE_SHA256  $TOOLS_DIR/REALESRGAN-LICENSE.txt" | sha256sum --check --status
 
 LIBGOMP_BIN="$(find "$TOOLS_DIR/libgomp" -name 'libgomp.so.1' -print -quit 2>/dev/null || true)"
@@ -87,7 +87,7 @@ if [[ -z "$LIBGOMP_BIN" ]]; then
   LIBGOMP_PACKAGE="$TOOLS_DIR/libgomp1_14.2.0-4ubuntu2_24.04.1_amd64.deb"
   LIBGOMP_URL="https://security.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_amd64.deb"
   LIBGOMP_SHA256="e8a95ec58125b4933597f30ff56c2ae10edf90f287262e366d4b6edea3019144"
-  curl --fail --location --progress-bar "$LIBGOMP_URL" --output "$LIBGOMP_PACKAGE"
+  curl --fail --location --retry 5 --retry-all-errors --progress-bar "$LIBGOMP_URL" --output "$LIBGOMP_PACKAGE"
   echo "$LIBGOMP_SHA256  $LIBGOMP_PACKAGE" | sha256sum --check --status
   dpkg-deb --extract "$LIBGOMP_PACKAGE" "$TOOLS_DIR/libgomp"
   LIBGOMP_BIN="$(find "$TOOLS_DIR/libgomp" -name 'libgomp.so.1' -print -quit)"

@@ -72,7 +72,7 @@ if not exist "%TOOLS_DIR%\GPL-3.0.txt" (
 )
 
 echo Creating virtual environment...
-py -m venv .venv-windows
+python -m venv .venv-windows
 if errorlevel 1 goto :build_error
 
 echo Installing dependencies...
