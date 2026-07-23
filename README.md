@@ -141,7 +141,7 @@ PowerShell on a computer with the Windows 10/11 SDK installed:
 
 Upload the generated `dist\Similaris-Store-0.1.0.0-x64.msixupload` directly to
 Partner Center. Its manifest uses the official Store identity assigned to
-Similaris (`572680QuesereuSolutions.Similaris`) and the Store signs the package
+Similaris (`57268OquesereuSolutions.Similaris`) and the Store signs the package
 after certification. Increase the four-part version for every submission; do
 not reuse a version already submitted.
 
@@ -301,7 +301,7 @@ um computador com o Windows 10/11 SDK instalado:
 
 Envie `dist\Similaris-Store-0.1.0.0-x64.msixupload` diretamente ao Partner
 Center. O manifesto usa a identidade oficial atribuída ao Similaris
-(`572680QuesereuSolutions.Similaris`) e a Store assina o pacote após a
+(`57268OquesereuSolutions.Similaris`) e a Store assina o pacote após a
 certificação. A versão de quatro partes deve ser aumentada a cada envio.
 
 ### Construção para Linux/WSL
@@ -451,7 +451,7 @@ PowerShell en un equipo con Windows 10/11 SDK instalado:
 
 Suba `dist\Similaris-Store-0.1.0.0-x64.msixupload` directamente a Partner
 Center. El manifiesto utiliza la identidad oficial asignada a Similaris
-(`572680QuesereuSolutions.Similaris`) y la Store firma el paquete después de la
+(`57268OquesereuSolutions.Similaris`) y la Store firma el paquete después de la
 certificación. La versión de cuatro partes debe aumentar con cada envío.
 
 ### Construcción para Linux/WSL

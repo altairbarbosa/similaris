@@ -6,14 +6,14 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="572680QuesereuSolutions.Similaris"
+    Name="57268OquesereuSolutions.Similaris"
     Publisher="CN=23966D79-60A0-4950-9FF8-D8923B736479"
     Version="@@VERSION@@"
     ProcessorArchitecture="x64" />
 
   <Properties>
     <DisplayName>Similaris</DisplayName>
-    <PublisherDisplayName>Quesereu</PublisherDisplayName>
+    <PublisherDisplayName>Oquesereu</PublisherDisplayName>
     <Description>Find duplicate images, convert media, and enhance images locally.</Description>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
