@@ -20,6 +20,11 @@ https://ffmpeg.org/download.html#get-sources
 
 Other components retain their respective licenses:
 
+Real-ESRGAN NCNN Vulkan is bundled for local image enhancement and is licensed
+under the MIT License. Its complete license notice is bundled as
+REALESRGAN-LICENSE.txt. Source code is available at:
+https://github.com/xinntao/Real-ESRGAN-ncnn-vulkan
+
 Python: https://docs.python.org/3/license.html
 Pillow: https://github.com/python-pillow/Pillow/blob/main/LICENSE
 ImageHash: https://github.com/JohannesBuchner/imagehash
