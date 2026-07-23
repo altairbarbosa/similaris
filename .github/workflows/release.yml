@@ -24,6 +24,15 @@ jobs:
         shell: cmd
         run: build_windows.bat
 
+      - name: Build Microsoft Store MSIX upload
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          $components = @($version.Split('.'))
+          while ($components.Count -lt 4) { $components += '0' }
+          $storeVersion = $components[0..3] -join '.'
+          ./build_store_msix.ps1 -Version $storeVersion
+
       - name: Name Windows release asset
         shell: pwsh
         run: Move-Item dist/Similaris.exe dist/Similaris-Windows-x64.exe
@@ -32,8 +41,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Similaris-Windows-x64
-          path: dist/Similaris-Windows-x64.exe
+          path: |
+            dist/Similaris-Windows-x64.exe
+            dist/Similaris-Store-*.msixupload
           if-no-files-found: error
+          compression-level: 0
 
   build-linux:
     runs-on: ubuntu-24.04

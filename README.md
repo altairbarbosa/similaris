@@ -130,6 +130,21 @@ The resulting file is portable on 64-bit Windows 10/11. The destination
 computer does not need Python, Pillow, ImageHash, NumPy, OpenCV, FFmpeg, or Real-ESRGAN installed.
 The initial build requires internet access.
 
+### Microsoft Store package
+
+After building `dist\Similaris.exe`, create the x64 MSIX upload package from
+PowerShell on a computer with the Windows 10/11 SDK installed:
+
+```powershell
+.\build_store_msix.ps1 -Version 0.1.0.0
+```
+
+Upload the generated `dist\Similaris-Store-0.1.0.0-x64.msixupload` directly to
+Partner Center. Its manifest uses the official Store identity assigned to
+Similaris (`572680QuesereuSolutions.Similaris`) and the Store signs the package
+after certification. Increase the four-part version for every submission; do
+not reuse a version already submitted.
+
 ## Build for Linux/WSL
 
 On Ubuntu or WSL, install the build requirements once:
@@ -275,6 +290,20 @@ FFmpeg e gera `dist\Similaris.exe`. Esse arquivo é portátil para Windows 10/11
 de 64 bits; o computador de destino não precisa ter Python, Pillow, ImageHash,
 NumPy, OpenCV, FFmpeg ou Real-ESRGAN. A primeira construção requer acesso à internet.
 
+#### Pacote para a Microsoft Store
+
+Depois de gerar `dist\Similaris.exe`, crie o pacote MSIX x64 no PowerShell de
+um computador com o Windows 10/11 SDK instalado:
+
+```powershell
+.\build_store_msix.ps1 -Version 0.1.0.0
+```
+
+Envie `dist\Similaris-Store-0.1.0.0-x64.msixupload` diretamente ao Partner
+Center. O manifesto usa a identidade oficial atribuída ao Similaris
+(`572680QuesereuSolutions.Similaris`) e a Store assina o pacote após a
+certificação. A versão de quatro partes deve ser aumentada a cada envio.
+
 ### Construção para Linux/WSL
 
 ```bash
@@ -410,6 +439,20 @@ El script crea un entorno aislado, instala las dependencias, descarga y verifica
 FFmpeg y genera `dist\Similaris.exe`. Este archivo es portátil para Windows
 10/11 de 64 bits; el equipo de destino no necesita Python, Pillow, ImageHash,
 NumPy, OpenCV, FFmpeg ni Real-ESRGAN. La primera construcción requiere acceso a Internet.
+
+#### Paquete para Microsoft Store
+
+Después de generar `dist\Similaris.exe`, cree el paquete MSIX x64 desde
+PowerShell en un equipo con Windows 10/11 SDK instalado:
+
+```powershell
+.\build_store_msix.ps1 -Version 0.1.0.0
+```
+
+Suba `dist\Similaris-Store-0.1.0.0-x64.msixupload` directamente a Partner
+Center. El manifiesto utiliza la identidad oficial asignada a Similaris
+(`572680QuesereuSolutions.Similaris`) y la Store firma el paquete después de la
+certificación. La versión de cuatro partes debe aumentar con cada envío.
 
 ### Construcción para Linux/WSL
 
