@@ -9,9 +9,11 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 try:
     from PIL import Image, ImageFilter, ImageOps, UnidentifiedImageError
@@ -31,6 +33,12 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
 VIDEO_EXTENSIONS = {
     ".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v", ".wmv", ".flv", ".mts", ".m2ts"
 }
+WINDOWS_CREATE_NO_WINDOW = 0x08000000
+
+
+def subprocess_window_options() -> dict[str, int]:
+    """Prevent bundled console tools from opening a terminal on Windows."""
+    return {"creationflags": WINDOWS_CREATE_NO_WINDOW} if sys.platform == "win32" else {}
 
 
 @dataclass(frozen=True)
@@ -60,6 +68,8 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         description="Find visually duplicate photos and organize a folder."
     )
     parser.add_argument("folder", nargs="?", default=".", type=Path)
+    parser.add_argument("--files", nargs="+", type=Path, default=None)
+    parser.add_argument("--output-folder", type=Path, default=None)
     parser.add_argument("--apply", "--aplicar", action="store_true", help="modify files")
     parser.add_argument("--skip-duplicates", "--nao-separar", action="store_true")
     parser.add_argument("--rename", "--renomear", action="store_true", dest="rename_photos")
@@ -78,6 +88,13 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--convert-only", "--somente-converter", action="store_true", dest="convert_only",
+    )
+    parser.add_argument("--enhance-images", action="store_true", dest="enhance_images")
+    parser.add_argument("--enhance-only", action="store_true", dest="enhance_only")
+    parser.add_argument("--enhanced-folder", default="enhanced")
+    parser.add_argument("--enhancement-scale", type=int, choices=(2, 3, 4), default=2)
+    parser.add_argument(
+        "--enhancement-model", choices=("photo", "illustration"), default="photo"
     )
     parser.add_argument(
         "--jpg-quality", "--qualidade-jpg", type=int, default=92, metavar="1-100",
@@ -158,6 +175,38 @@ class MatchEvidence:
     changed_fraction: float = 0.0
 
 
+@dataclass(frozen=True)
+class PlannedPhoto:
+    path: Path
+    width: int
+    height: int
+    size: int
+    modified_ns: int
+
+    @property
+    def area(self) -> int:
+        return self.width * self.height
+
+
+@dataclass(frozen=True)
+class DuplicatePlan:
+    folder: Path
+    sensitivity: str
+    fingerprint: tuple[tuple[str, int, int], ...]
+    groups: tuple[tuple[PlannedPhoto, ...], ...]
+
+
+@dataclass(frozen=True)
+class SeparationRecord:
+    moved: Path
+    kept: Path
+    moved_resolution: tuple[int, int]
+    kept_resolution: tuple[int, int]
+
+
+_LAST_DUPLICATE_PLAN: DuplicatePlan | None = None
+
+
 SENSITIVITY = {
     "conservative": {"hash": 0.94, "geometry": 0.88, "inlier_ratio": 0.48, "inliers": 16, "changed": 0.035},
     "balanced": {"hash": 0.90, "geometry": 0.80, "inlier_ratio": 0.36, "inliers": 11, "changed": 0.055},
@@ -234,11 +283,31 @@ def _is_geometric_candidate(a: Photo, b: Photo) -> bool:
     same_orientation = abs(aspect_a - aspect_b) / max(aspect_a, aspect_b) <= 0.35
     rotated_orientation = abs(aspect_a - (1.0 / aspect_b)) / max(aspect_a, 1.0 / aspect_b) <= 0.35
 
-    # A deliberately wide recall gate. Geometry remains the final authority.
+    gray_a = a.cinza.astype(np.float32).reshape(64, 64)
+    gray_b = b.cinza.astype(np.float32).reshape(64, 64)
+    edge_a = a.bordas.astype(np.float32).reshape(64, 64)
+    edge_b = b.bordas.astype(np.float32).reshape(64, 64)
+    gray_correlation = max(
+        float(np.dot(gray_a.reshape(-1), np.rot90(gray_b, turns).reshape(-1)) / 4096)
+        for turns in range(4)
+    )
+    edge_correlation = max(
+        float(np.dot(edge_a.reshape(-1), np.rot90(edge_b, turns).reshape(-1)) / 4096)
+        for turns in range(4)
+    )
+
+    # Rotation-aware low-resolution structure keeps transformed copies while
+    # preventing visually related photo sessions from reaching ORB matching.
     return (
-        hash_similarity >= 0.56
-        or histogram_similarity >= 0.58
-        or ((same_orientation or rotated_orientation) and hash_similarity >= 0.48)
+        hash_similarity >= 0.62
+        or gray_correlation >= 0.55
+        or edge_correlation >= 0.43
+        or histogram_similarity >= 0.94
+        or (
+            (same_orientation or rotated_orientation)
+            and histogram_similarity >= 0.90
+            and (gray_correlation >= 0.40 or edge_correlation >= 0.38)
+        )
     )
 
 
@@ -346,18 +415,28 @@ def are_similar(a: Photo, b: Photo, sensitivity: str = "balanced") -> bool:
     return compare_photos(a, b, sensitivity).duplicate
 
 
-def group_duplicates(fotos: list[Photo], sensitivity: str = "balanced") -> list[list[int]]:
+def group_duplicates(
+    fotos: list[Photo], sensitivity: str = "balanced",
+    progress: Callable[[int, int], None] | None = None,
+) -> list[list[int]]:
     # The highest-quality image is the anchor. Candidates must match the anchor,
     # which prevents A~B~C transitive chains from merging unrelated endpoints.
     ordered = sorted(range(len(fotos)), key=lambda i: (fotos[i].area, fotos[i].tamanho), reverse=True)
     groups: list[list[int]] = []
+    comparisons = 0
+    maximum_comparisons = len(fotos) * (len(fotos) - 1) // 2
     for index in ordered:
         for group in groups:
+            comparisons += 1
             if are_similar(fotos[group[0]], fotos[index], sensitivity):
                 group.append(index)
                 break
+            if progress and comparisons % 2500 == 0:
+                progress(comparisons, maximum_comparisons)
         else:
             groups.append([index])
+    if progress:
+        progress(comparisons, maximum_comparisons)
     return [group for group in groups if len(group) > 1]
 
 
@@ -384,6 +463,96 @@ def separate(fotos: list[Photo], grupos: list[list[int]], destino: Path) -> list
             shutil.move(origem, alvo)
             movidas.append(alvo)
     return movidas
+
+
+def photo_fingerprint(paths: list[Path]) -> tuple[tuple[str, int, int], ...]:
+    return tuple(
+        (str(path.resolve()), metadata.st_size, metadata.st_mtime_ns)
+        for path in paths for metadata in (path.stat(),)
+    )
+
+
+def build_duplicate_plan(
+    folder: Path, sensitivity: str, photos: list[Photo], groups: list[list[int]],
+    paths: list[Path],
+) -> DuplicatePlan:
+    planned_groups = []
+    for group in groups:
+        ordered = sorted(group, key=lambda i: (photos[i].area, photos[i].tamanho), reverse=True)
+        planned_groups.append(tuple(
+            PlannedPhoto(
+                photos[index].caminho, photos[index].largura, photos[index].altura,
+                photos[index].tamanho, photos[index].caminho.stat().st_mtime_ns,
+            )
+            for index in ordered
+        ))
+    return DuplicatePlan(
+        folder, sensitivity, photo_fingerprint(paths), tuple(planned_groups)
+    )
+
+
+def plan_is_current(
+    plan: DuplicatePlan | None, folder: Path, sensitivity: str, paths: list[Path]
+) -> bool:
+    if plan is None or plan.folder != folder or plan.sensitivity != sensitivity:
+        return False
+    try:
+        return plan.fingerprint == photo_fingerprint(paths)
+    except OSError:
+        return False
+
+
+def apply_duplicate_plan(plan: DuplicatePlan, destination: Path) -> list[SeparationRecord]:
+    destination.mkdir(parents=True, exist_ok=True)
+    records: list[SeparationRecord] = []
+    for group in plan.groups:
+        kept = group[0]
+        for duplicate in group[1:]:
+            target = available_path(destination / duplicate.path.name)
+            shutil.move(duplicate.path, target)
+            records.append(SeparationRecord(
+                target, kept.path, (duplicate.width, duplicate.height),
+                (kept.width, kept.height),
+            ))
+    return records
+
+
+def write_duplicate_report(
+    destination: Path, records: list[SeparationRecord], language: str
+) -> Path:
+    labels = {
+        "pt-BR": (
+            "RELATÓRIO DE IMAGENS DUPLICADAS", "Imagem separada", "Imagem mantida",
+            "Resoluções", "separada", "mantida", "Motivo",
+            "A imagem mantida possui melhor resolução.",
+        ),
+        "en-US": (
+            "DUPLICATE IMAGE REPORT", "Separated image", "Kept image",
+            "Resolutions", "separated", "kept", "Reason",
+            "The kept image has the better resolution.",
+        ),
+        "es-ES": (
+            "INFORME DE IMÁGENES DUPLICADAS", "Imagen separada", "Imagen conservada",
+            "Resoluciones", "separada", "conservada", "Motivo",
+            "La imagen conservada tiene mejor resolución.",
+        ),
+    }
+    title, moved_label, kept_label, sizes_label, moved_size_label, kept_size_label, reason_label, reason = labels[language]
+    lines = [title, "=" * len(title), ""]
+    for record in records:
+        moved_size = f"{record.moved_resolution[0]}x{record.moved_resolution[1]}"
+        kept_size = f"{record.kept_resolution[0]}x{record.kept_resolution[1]}"
+        lines.extend((
+            f"{moved_label}: {record.moved.name}",
+            f"{kept_label}: {record.kept.name}",
+            f"{sizes_label}: {moved_size_label} {moved_size} | {kept_size_label} {kept_size}",
+            f"{reason_label}: {reason}", "", "-" * 60, "",
+        ))
+    report = destination / "report.txt"
+    temporary = destination / f".report.{uuid.uuid4().hex}.tmp"
+    temporary.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    os.replace(temporary, report)
+    return report
 
 
 def photos_in_folder(pasta: Path) -> list[Path]:
@@ -460,7 +629,7 @@ def convert_video(origem: Path, destino: Path, crf: int) -> Path:
         "-movflags", "+faststart", str(temporario),
     ]
     try:
-        subprocess.run(comando, check=True)
+        subprocess.run(comando, check=True, **subprocess_window_options())
         os.replace(temporario, alvo)
         return alvo
     except subprocess.CalledProcessError as erro:
@@ -489,6 +658,111 @@ def find_ffmpeg() -> str | None:
     return None
 
 
+def find_enhancement_engine() -> str | None:
+    executable_name = "realesrgan-ncnn-vulkan.exe" if os.name == "nt" else "realesrgan-ncnn-vulkan"
+    found = shutil.which(executable_name)
+    if found:
+        return found
+    resource_dir = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    candidates = (
+        resource_dir / executable_name,
+        Path(sys.executable).resolve().parent / executable_name,
+        Path(__file__).resolve().parent / executable_name,
+    )
+    return next((str(candidate) for candidate in candidates if candidate.is_file()), None)
+
+
+def enhance_image(
+    source: Path, destination: Path, scale: int, model: str,
+    progress: Callable[[str], None] | None = None,
+) -> Path:
+    """Upscale one image locally with the bundled Real-ESRGAN NCNN/Vulkan engine."""
+    engine = find_enhancement_engine()
+    if not engine:
+        raise RuntimeError("Real-ESRGAN enhancement engine was not found")
+
+    destination.mkdir(parents=True, exist_ok=True)
+    target = available_path(destination / f"{source.stem}-{scale}x.png")
+    model_name = "realesrgan-x4plus" if model == "photo" else "realesrgan-x4plus-anime"
+    model_directory = Path(engine).resolve().parent / "models"
+    if not model_directory.is_dir():
+        raise RuntimeError("Real-ESRGAN model files were not found")
+    with tempfile.TemporaryDirectory(prefix="similaris-enhance-") as temporary_folder:
+        normalized = Path(temporary_folder) / "input.png"
+        temporary_output = Path(temporary_folder) / "output.png"
+        if progress:
+            progress("preparando a imagem")
+        with Image.open(source) as image:
+            ImageOps.exif_transpose(image).save(normalized, format="PNG")
+        command = [
+            engine, "-i", str(normalized), "-o", str(temporary_output),
+            "-s", str(scale), "-n", model_name, "-m", str(model_directory), "-f", "png",
+        ]
+        try:
+            if progress:
+                progress("Real-ESRGAN em execução")
+            subprocess.run(
+                command, check=True, capture_output=True, text=True,
+                **subprocess_window_options(),
+            )
+        except subprocess.CalledProcessError as error:
+            details = (error.stderr or error.stdout or "").strip()
+            raise RuntimeError(
+                "Real-ESRGAN failed. Verify that a Vulkan-compatible GPU and driver are available"
+                + (f": {details}" if details else "")
+            ) from error
+        if not temporary_output.is_file():
+            raise RuntimeError("Real-ESRGAN completed without creating an output image")
+        if progress:
+            progress("validando o resultado")
+        with Image.open(normalized) as input_image, Image.open(temporary_output) as output_image:
+            expected_size = (input_image.width * scale, input_image.height * scale)
+            if output_image.size != expected_size:
+                raise RuntimeError(
+                    f"Real-ESRGAN returned {output_image.size}; expected {expected_size}"
+                )
+        os.replace(temporary_output, target)
+        if progress:
+            progress("arquivo salvo")
+    return target
+
+
+def run_enhancement(
+    args: argparse.Namespace, folder: Path, selected_files: list[Path] | None = None,
+    output_folder: Path | None = None,
+) -> tuple[int, list[str]]:
+    if not args.enhance_images:
+        return 0, []
+    destination = output_folder or (folder / args.enhanced_folder)
+    completed = 0
+    failures: list[str] = []
+    sources = selected_files if selected_files is not None else photos_in_folder(folder)
+    sources = [source for source in sources if source.suffix.lower() in IMAGE_EXTENSIONS]
+    total = len(sources)
+    for index, source in enumerate(sources, 1):
+        initial_percent = (completed * 100 / total) if total else 100
+        localized_print(
+            args.language,
+            f"Progresso da melhoria: {completed}/{total} ({initial_percent:.1f}%) — processando {source.name}",
+        )
+        try:
+            target = enhance_image(
+                source, destination, args.enhancement_scale, args.enhancement_model,
+                lambda phase: localized_print(args.language, f"    {source.name}: {phase}"),
+            )
+            completed += 1
+            localized_print(args.language, f"  imagem melhorada: {source.name} -> {target.name}")
+        except Exception as error:
+            failures.append(f"{source.name}: {error}")
+            localized_print(args.language, f"    falha em {source.name}: {error}")
+        finished_percent = (index * 100 / total) if total else 100
+        localized_print(
+            args.language,
+            f"Progresso da melhoria: {index}/{total} ({finished_percent:.1f}%) — etapa concluída",
+        )
+    return completed, failures
+
+
 OUTPUT_TRANSLATIONS = {
     "en-US": {
         "  imagem:": "  image:", "  vídeo:": "  video:", "Pasta inexistente:": "Folder does not exist:",
@@ -506,6 +780,15 @@ OUTPUT_TRANSLATIONS = {
         "Aviso:": "Warning:", "arquivo(s) não puderam ser lidos:": "file(s) could not be read:",
         "Simulação concluída.": "Simulation completed.", "Concluído:": "Completed:", "repetida(s) movida(s) para": "duplicate(s) moved to",
         "exige uma opção --converter-*.": "requires a --convert-* option.",
+        "Reutilizando o resultado da última simulação; nenhuma nova comparação é necessária.": "Reusing the last simulation result; no new comparison is required.",
+        "Relatório criado em": "Report created at",
+        "Comparando imagens:": "Comparing images:", "pares verificados": "pairs checked",
+        "Melhorando imagens para": "Enhancing images into", "Melhoria concluída:": "Enhancement completed:",
+        "imagem(ns) melhorada(s).": "enhanced image(s).", "  imagem melhorada:": "  enhanced image:",
+        "Progresso da melhoria:": "Enhancement progress:", "processando": "processing",
+        "preparando a imagem": "preparing image", "Real-ESRGAN em execução": "Real-ESRGAN is running",
+        "validando o resultado": "validating result", "arquivo salvo": "file saved",
+        "etapa concluída": "step completed", "falha em": "failed on",
     },
     "es-ES": {
         "  imagem:": "  imagen:", "  vídeo:": "  vídeo:", "Pasta inexistente:": "La carpeta no existe:",
@@ -523,6 +806,15 @@ OUTPUT_TRANSLATIONS = {
         "Aviso:": "Aviso:", "arquivo(s) não puderam ser lidos:": "archivo(s) no se pudieron leer:",
         "Simulação concluída.": "Simulación completada.", "Concluído:": "Completado:", "repetida(s) movida(s) para": "duplicado(s) movido(s) a",
         "exige uma opção --converter-*.": "requiere una opción --convert-*.",
+        "Reutilizando o resultado da última simulação; nenhuma nova comparação é necessária.": "Reutilizando el resultado de la última simulación; no se requiere una nueva comparación.",
+        "Relatório criado em": "Informe creado en",
+        "Comparando imagens:": "Comparando imágenes:", "pares verificados": "pares comprobados",
+        "Melhorando imagens para": "Mejorando imágenes en", "Melhoria concluída:": "Mejora completada:",
+        "imagem(ns) melhorada(s).": "imagen(es) mejorada(s).", "  imagem melhorada:": "  imagen mejorada:",
+        "Progresso da melhoria:": "Progreso de mejora:", "processando": "procesando",
+        "preparando a imagem": "preparando imagen", "Real-ESRGAN em execução": "Real-ESRGAN está en ejecución",
+        "validando o resultado": "validando resultado", "arquivo salvo": "archivo guardado",
+        "etapa concluída": "etapa completada", "falha em": "falló en",
     },
 }
 
@@ -534,17 +826,21 @@ def localized_print(language: str, *values: object, **kwargs: object) -> None:
     print(text, **kwargs)
 
 
-def run_conversions(args: argparse.Namespace, pasta: Path) -> tuple[int, int, list[str]]:
+def run_conversions(
+    args: argparse.Namespace, pasta: Path, selected_files: list[Path] | None = None,
+    output_folder: Path | None = None,
+) -> tuple[int, int, list[str]]:
     imagens = args.convert_images or args.convert_all
     videos = args.convert_videos or args.convert_all
     if not imagens and not videos:
         return 0, 0, []
 
-    destino = pasta / args.converted_folder
+    destino = output_folder or (pasta / args.converted_folder)
     destino.mkdir(parents=True, exist_ok=True)
     feitas_imagens = feitas_videos = 0
     falhas: list[str] = []
-    entradas = sorted((p for p in pasta.iterdir() if p.is_file()), key=lambda p: p.name.casefold())
+    entradas = selected_files if selected_files is not None else [p for p in pasta.iterdir() if p.is_file()]
+    entradas = sorted(entradas, key=lambda p: p.name.casefold())
 
     if imagens:
         for origem in (p for p in entradas if p.suffix.lower() in IMAGE_EXTENSIONS):
@@ -567,11 +863,21 @@ def run_conversions(args: argparse.Namespace, pasta: Path) -> tuple[int, int, li
 
 
 def main(argv: list[str] | None = None) -> int:
+    global _LAST_DUPLICATE_PLAN
     args = parse_arguments(argv)
     pasta = args.folder.expanduser().resolve()
+    selected_files = (
+        [path.expanduser().resolve() for path in args.files] if args.files else None
+    )
+    output_folder = args.output_folder.expanduser().resolve() if args.output_folder else None
     if not pasta.is_dir():
         localized_print(args.language, f"Pasta inexistente: {pasta}", file=sys.stderr)
         return 2
+    if selected_files is not None:
+        missing = [path for path in selected_files if not path.is_file()]
+        if missing:
+            localized_print(args.language, f"Arquivo inexistente: {missing[0]}", file=sys.stderr)
+            return 2
 
     if not 1 <= args.jpg_quality <= 100:
         localized_print(args.language, "--qualidade-jpg deve estar entre 1 e 100.", file=sys.stderr)
@@ -584,19 +890,40 @@ def main(argv: list[str] | None = None) -> int:
     if args.convert_only and not quer_converter:
         localized_print(args.language, "--somente-converter exige uma opção --converter-*.", file=sys.stderr)
         return 2
+    if args.enhance_only and not args.enhance_images:
+        localized_print(args.language, "--enhance-only requires --enhance-images.", file=sys.stderr)
+        return 2
     if quer_converter:
-        localized_print(args.language, f"Convertendo arquivos para {pasta / args.converted_folder}...")
-        n_imagens, n_videos, falhas_conversao = run_conversions(args, pasta)
+        conversion_destination = output_folder or (pasta / args.converted_folder)
+        localized_print(args.language, f"Convertendo arquivos para {conversion_destination}...")
+        n_imagens, n_videos, falhas_conversao = run_conversions(
+            args, pasta, selected_files, conversion_destination
+        )
         localized_print(args.language, f"Conversões concluídas: {n_imagens} imagem(ns), {n_videos} vídeo(s).")
         if falhas_conversao:
             localized_print(args.language, f"Falharam {len(falhas_conversao)} conversão(ões):")
             for falha in falhas_conversao:
                 localized_print(args.language, f"  {falha}")
 
-    if args.convert_only:
-        return 0
+    if args.enhance_images:
+        enhancement_destination = output_folder or (pasta / args.enhanced_folder)
+        localized_print(args.language, f"Melhorando imagens para {enhancement_destination}...")
+        enhanced_count, enhancement_failures = run_enhancement(
+            args, pasta, selected_files, enhancement_destination
+        )
+        localized_print(args.language, f"Melhoria concluída: {enhanced_count} imagem(ns) melhorada(s).")
+        if enhancement_failures:
+            localized_print(args.language, f"Falharam {len(enhancement_failures)} imagem(ns):")
+            for failure in enhancement_failures:
+                localized_print(args.language, f"  {failure}")
 
-    caminhos = photos_in_folder(pasta)
+    if args.convert_only or args.enhance_only:
+        return 1 if (locals().get("falhas_conversao") or locals().get("enhancement_failures")) else 0
+
+    caminhos = (
+        [path for path in selected_files if path.suffix.lower() in IMAGE_EXTENSIONS]
+        if selected_files is not None else photos_in_folder(pasta)
+    )
     if not caminhos:
         localized_print(args.language, "Nenhuma imagem compatível encontrada.")
         return 0
@@ -616,6 +943,24 @@ def main(argv: list[str] | None = None) -> int:
             localized_print(args.language, f"Renomeadas {len(restantes)} imagens.")
         return 0
 
+    if args.apply and plan_is_current(_LAST_DUPLICATE_PLAN, pasta, args.sensitivity, caminhos):
+        localized_print(
+            args.language,
+            "Reutilizando o resultado da última simulação; nenhuma nova comparação é necessária.",
+        )
+        destino = output_folder or (pasta / args.duplicates_folder)
+        records = apply_duplicate_plan(_LAST_DUPLICATE_PLAN, destino)
+        report = write_duplicate_report(destino, records, args.language)
+        _LAST_DUPLICATE_PLAN = None
+        restantes = [path for path in caminhos if path.exists()]
+        if args.rename_photos:
+            restantes = rename_photos(restantes)
+        localized_print(args.language, f"Concluído: {len(records)} repetida(s) movida(s) para {destino}.")
+        localized_print(args.language, f"Relatório criado em {report}.")
+        if args.rename_photos:
+            localized_print(args.language, f"Renomeadas {len(restantes)} imagens.")
+        return 0
+
     localized_print(args.language, f"Analisando {len(caminhos)} imagens em {pasta}...")
     fotos: list[Photo] = []
     falhas: list[tuple[Path, str]] = []
@@ -627,7 +972,17 @@ def main(argv: list[str] | None = None) -> int:
         if numero % 100 == 0:
             localized_print(args.language, f"  {numero}/{len(caminhos)} processadas")
 
-    grupos = group_duplicates(fotos, args.sensitivity)
+    def comparison_progress(completed: int, total: int) -> None:
+        percent = (completed * 100 / total) if total else 100
+        localized_print(
+            args.language,
+            f"  Comparando imagens: {completed}/{total} pares verificados ({percent:.1f}%)",
+        )
+
+    grupos = group_duplicates(fotos, args.sensitivity, comparison_progress)
+    _LAST_DUPLICATE_PLAN = build_duplicate_plan(
+        pasta, args.sensitivity, fotos, grupos, caminhos
+    )
     quantidade = sum(len(grupo) - 1 for grupo in grupos)
     localized_print(args.language, f"Encontrados {len(grupos)} grupos e {quantidade} arquivos repetidos.")
     for numero, grupo in enumerate(grupos, 1):
@@ -645,13 +1000,16 @@ def main(argv: list[str] | None = None) -> int:
         localized_print(args.language, "\nSimulação concluída. Use --aplicar para realizar as alterações.")
         return 0
 
-    destino = pasta / args.duplicates_folder
-    movidas = separate(fotos, grupos, destino)
-    restantes = photos_in_folder(pasta)
+    destino = output_folder or (pasta / args.duplicates_folder)
+    records = apply_duplicate_plan(_LAST_DUPLICATE_PLAN, destino)
+    report = write_duplicate_report(destino, records, args.language)
+    _LAST_DUPLICATE_PLAN = None
+    restantes = [path for path in caminhos if path.exists()]
     if args.rename_photos:
         restantes = rename_photos(restantes)
 
-    localized_print(args.language, f"\nConcluído: {len(movidas)} repetida(s) movida(s) para {destino}.")
+    localized_print(args.language, f"\nConcluído: {len(records)} repetida(s) movida(s) para {destino}.")
+    localized_print(args.language, f"Relatório criado em {report}.")
     if args.rename_photos:
         localized_print(args.language, f"Renomeadas {len(restantes)} imagens.")
     return 0
