@@ -38,8 +38,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 if errorlevel 1 goto :ffmpeg_error
 
 set "FFMPEG_EXE="
+set "FFMPEG_LICENSE="
 for /r "%FFMPEG_DIR%" %%F in (ffmpeg.exe) do if exist "%%F" set "FFMPEG_EXE=%%F"
+for /r "%FFMPEG_DIR%" %%F in (LICENSE) do if exist "%%F" set "FFMPEG_LICENSE=%%F"
 if not defined FFMPEG_EXE goto :ffmpeg_error
+if not defined FFMPEG_LICENSE goto :ffmpeg_error
+
+copy /Y "%FFMPEG_LICENSE%" "%TOOLS_DIR%\GPL-3.0.txt" >nul
+if errorlevel 1 goto :ffmpeg_error
 
 if not exist "%REALESRGAN_ZIP%" (
   echo Downloading the portable Real-ESRGAN engine...
@@ -68,12 +74,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 if errorlevel 1 goto :enhancement_error
 python -c "import hashlib, os, sys; path=os.path.join(os.environ['TOOLS_DIR'], 'REALESRGAN-LICENSE.txt'); actual=hashlib.sha256(open(path, 'rb').read()).hexdigest(); sys.exit(0 if actual == '5abb941454de437b0e90d78dcb72e3688f74e14bcd4e24393273cb5cd0e9c937' else 1)"
 if errorlevel 1 goto :enhancement_error
-
-if not exist "%TOOLS_DIR%\GPL-3.0.txt" (
-  echo Downloading the FFmpeg license...
-  curl.exe --fail --location --retry 5 --retry-all-errors --output "%TOOLS_DIR%\GPL-3.0.txt" "https://www.gnu.org/licenses/gpl-3.0.txt"
-  if errorlevel 1 goto :ffmpeg_error
-)
 
 echo Creating virtual environment...
 python -m venv .venv-windows
