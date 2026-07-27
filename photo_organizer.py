@@ -132,8 +132,21 @@ def analyze(caminho: Path) -> Photo:
         imagem = imagem.convert("RGB")
         rgb_array = np.asarray(imagem, dtype=np.uint8)
         grayscale = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2GRAY)
-        orb = cv2.ORB_create(nfeatures=1200, scaleFactor=1.2, nlevels=8, fastThreshold=12)
-        keypoints, descriptors = orb.detectAndCompute(grayscale, None)
+        keypoints: tuple[object, ...] = ()
+        descriptors = None
+        # ORB builds an internal image pyramid. OpenCV 5 raises an assertion
+        # while resizing that pyramid when either source dimension is one
+        # pixel, so keep the other perceptual signatures and omit only the
+        # geometric descriptors for these unusual images.
+        if min(grayscale.shape[:2]) >= 2:
+            orb = cv2.ORB_create(
+                nfeatures=1200, scaleFactor=1.2, nlevels=8, fastThreshold=12
+            )
+            try:
+                detected_keypoints, descriptors = orb.detectAndCompute(grayscale, None)
+                keypoints = tuple(detected_keypoints)
+            except cv2.error:
+                descriptors = None
         hsv = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2HSV)
         color_histogram = cv2.calcHist([hsv], [0, 1], None, [24, 16], [0, 180, 0, 256])
         cv2.normalize(color_histogram, color_histogram)
@@ -160,7 +173,7 @@ def analyze(caminho: Path) -> Photo:
             bordas=assinatura(bordas_imagem),
             grayscale=grayscale,
             color_histogram=color_histogram.flatten().astype(np.float32),
-            keypoints=tuple(keypoints),
+            keypoints=keypoints,
             descriptors=descriptors,
         )
 
@@ -967,7 +980,7 @@ def main(argv: list[str] | None = None) -> int:
     for numero, caminho in enumerate(caminhos, 1):
         try:
             fotos.append(analyze(caminho))
-        except (OSError, UnidentifiedImageError) as erro:
+        except (OSError, ValueError, UnidentifiedImageError, cv2.error) as erro:
             falhas.append((caminho, str(erro)))
         if numero % 100 == 0:
             localized_print(args.language, f"  {numero}/{len(caminhos)} processadas")
