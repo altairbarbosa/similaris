@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>Similaris.WinUI</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\similaris-icon.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType Condition="'$(GenerateAppxPackageOnBuild)' != 'true'">None</WindowsPackageType>
+    <EnableMsixTooling Condition="'$(GenerateAppxPackageOnBuild)' == 'true'">true</EnableMsixTooling>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.3.1" />
+    <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="bin\**\*.cs" />
+    <Compile Remove="bin-verify\**\*.cs" />
+    <Compile Remove="obj\**\*.cs" />
+    <Compile Remove="obj-verify\**\*.cs" />
+    <Page Remove="bin\**\*.xaml" />
+    <Page Remove="bin-verify\**\*.xaml" />
+    <Page Remove="obj\**\*.xaml" />
+    <Page Remove="obj-verify\**\*.xaml" />
+    <ApplicationDefinition Remove="bin\**\*.xaml" />
+    <ApplicationDefinition Remove="bin-verify\**\*.xaml" />
+    <ApplicationDefinition Remove="obj\**\*.xaml" />
+    <ApplicationDefinition Remove="obj-verify\**\*.xaml" />
+    <Content Include="..\..\assets\similaris-icon.png" Link="Assets\similaris-icon.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\assets\similaris-icon.ico" Link="Assets\similaris-icon.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\packaging\assets\*.png" Link="Assets\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\photo_organizer.py" Link="Python\photo_organizer.py" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\requirements.txt" Link="Python\requirements.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\dist\python-core\SimilarisCore\**\*" Link="Python\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\THIRD_PARTY_NOTICES.txt" Link="Licenses\THIRD_PARTY_NOTICES.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\LICENSE" Link="Licenses\LICENSE" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

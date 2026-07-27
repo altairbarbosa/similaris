@@ -51,7 +51,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$actual=(Get-FileHash '%REALESRGAN_ZIP%' -Algorithm SHA256).Hash.ToLower(); if ($actual -ne '%REALESRGAN_SHA256%') { Write-Error 'Real-ESRGAN SHA-256 mismatch'; exit 1 }; Expand-Archive -Path '%REALESRGAN_ZIP%' -DestinationPath '%REALESRGAN_DIR%' -Force"
 if errorlevel 1 goto :enhancement_error
 set "REALESRGAN_EXE="
-set "REALESRGAN_LICENSE="
 set "REALESRGAN_MODELS="
 set "VCOMP_DLL="
 for /r "%REALESRGAN_DIR%" %%F in (realesrgan-ncnn-vulkan.exe) do if exist "%%F" set "REALESRGAN_EXE=%%F"
@@ -60,6 +59,7 @@ for /r "%REALESRGAN_DIR%" %%F in (vcomp140.dll) do if exist "%%F" set "VCOMP_DLL
 if not defined REALESRGAN_EXE goto :enhancement_error
 if not defined REALESRGAN_MODELS goto :enhancement_error
 if not defined VCOMP_DLL goto :enhancement_error
+
 curl.exe --fail --location --retry 5 --retry-all-errors --output "%TOOLS_DIR%\REALESRGAN-LICENSE.txt" "%REALESRGAN_LICENSE_URL%"
 if errorlevel 1 goto :enhancement_error
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
@@ -76,17 +76,16 @@ echo Creating virtual environment...
 python -m venv .venv-windows
 if errorlevel 1 goto :build_error
 
-echo Installing dependencies...
+echo Installing Python core dependencies...
 call .venv-windows\Scripts\python.exe -m pip install --upgrade pip
 if errorlevel 1 goto :build_error
 call .venv-windows\Scripts\python.exe -m pip install -r requirements-windows.txt
 if errorlevel 1 goto :build_error
 
-echo Building Similaris.exe...
-call .venv-windows\Scripts\pyinstaller.exe --noconfirm --clean --onedir --windowed ^
-  --name Similaris ^
-  --distpath "dist\windows" ^
-  --icon "assets\similaris-icon.ico" ^
+echo Building SimilarisCore.exe...
+call .venv-windows\Scripts\pyinstaller.exe --noconfirm --clean --onedir --console ^
+  --name SimilarisCore ^
+  --distpath "dist\python-core" ^
   --add-binary "%FFMPEG_EXE%;." ^
   --add-binary "%REALESRGAN_EXE%;." ^
   --add-binary "%VCOMP_DLL%;." ^
@@ -95,14 +94,12 @@ call .venv-windows\Scripts\pyinstaller.exe --noconfirm --clean --onedir --window
   --add-data "%TOOLS_DIR%\REALESRGAN-LICENSE.txt;." ^
   --add-data "THIRD_PARTY_NOTICES.txt;." ^
   --add-data "LICENSE;." ^
-  --add-data "assets;assets" ^
-  app.py
+  photo_organizer.py
 if errorlevel 1 goto :build_error
 
 echo.
-echo Done: dist\windows\Similaris\Similaris.exe
-echo This portable folder includes Python, libraries, and FFmpeg.
-echo Keep the complete Similaris folder together when copying the application.
+echo Done: dist\python-core\SimilarisCore\SimilarisCore.exe
+echo The WinUI project copies this folder into Python\ during build.
 if defined CI exit /b 0
 pause
 exit /b 0
@@ -110,15 +107,13 @@ exit /b 0
 :ffmpeg_error
 echo.
 echo Could not download or locate FFmpeg.
-echo Check your internet connection. If needed, delete the folder
-echo .build-tools and try again.
 if defined CI exit /b 1
 pause
 exit /b 1
 
 :build_error
 echo.
-echo Could not build the executable. Check the messages above.
+echo Could not build the Python core. Check the messages above.
 if defined CI exit /b 1
 pause
 exit /b 1

@@ -2,6 +2,12 @@
 .venv-windows/
 build/
 dist/
+artifacts/
+bin/
+obj/
+AppPackages/
+obj-verify/
+.vs/
 *.spec
 __pycache__/
 .env

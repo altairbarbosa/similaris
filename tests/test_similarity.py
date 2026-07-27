@@ -9,7 +9,6 @@ from unittest.mock import patch
 
 from PIL import Image, ImageDraw, ImageEnhance
 
-import app
 import photo_organizer
 
 
@@ -47,11 +46,6 @@ class SimilarityPipelineTests(unittest.TestCase):
         return photo_organizer.compare_photos(
             photo_organizer.analyze(first), photo_organizer.analyze(second), "balanced"
         )
-
-    def test_translation_catalogs_have_matching_keys(self) -> None:
-        english_keys = set(app.TEXT["en-US"])
-        self.assertEqual(set(app.TEXT["pt-BR"]), english_keys)
-        self.assertEqual(set(app.TEXT["es-ES"]), english_keys)
 
     def test_exact_copy_uses_sha256(self) -> None:
         original = self.save("original.png", sample_image())
@@ -211,7 +205,7 @@ class SimilarityPipelineTests(unittest.TestCase):
 
         def create_engine_output(command: list[str], **_kwargs: object) -> object:
             output = Path(command[command.index("-o") + 1])
-            Image.new("RGB", (1280, 840), "white").save(output)
+            Image.new("RGB", (2560, 1680), "white").save(output)
             return unittest.mock.Mock(returncode=0)
 
         with (
@@ -225,7 +219,7 @@ class SimilarityPipelineTests(unittest.TestCase):
         with Image.open(target) as enhanced:
             self.assertEqual(enhanced.size, (1280, 840))
         command = run.call_args.args[0]
-        self.assertEqual(command[command.index("-s") + 1], "2")
+        self.assertEqual(command[command.index("-s") + 1], "4")
         self.assertEqual(command[command.index("-n") + 1], "realesrgan-x4plus")
 
     def test_enhancement_reports_current_file_and_real_percentage(self) -> None:

@@ -20,20 +20,30 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build portable Windows executable
-        shell: cmd
-        run: build_windows.bat
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
 
-      - name: Package Windows release folder
+      - name: Build WinUI app with Python core
         shell: pwsh
-        run: Compress-Archive -Path dist/windows/Similaris/* -DestinationPath dist/Similaris-Windows-x64.zip
+        run: .\scripts\build_release_assets.ps1 -Version "${{ github.ref_name }}"
 
-      - name: Upload Windows artifact
+      - name: Upload public release assets
         uses: actions/upload-artifact@v4
         with:
-          name: Similaris-Windows-x64
-          path: dist/Similaris-Windows-x64.zip
+          name: Similaris-public-release-assets
+          path: dist/release-assets/*
           if-no-files-found: error
+          compression-level: 0
+
+      - name: Upload private Store package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Similaris-private-store-package
+          path: dist/store-assets/*
+          if-no-files-found: error
+          retention-days: 14
           compression-level: 0
 
   publish:
@@ -43,8 +53,8 @@ jobs:
       - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
+          name: Similaris-public-release-assets
           path: release-assets
-          merge-multiple: true
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2

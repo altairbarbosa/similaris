@@ -6,7 +6,7 @@ All notable changes to Similaris are documented in this file.
 
 ### Added
 
-- Introduced a responsive Fluent/WinUI-inspired interface with dedicated
+- Introduced a responsive native WinUI 3 interface with dedicated
   navigation for image organization, file conversion, image enhancement, and
   settings.
 - Added consistent English, Brazilian Portuguese, and Spanish localization for
@@ -16,9 +16,9 @@ All notable changes to Similaris are documented in this file.
   status messages.
 - Added collapsible processing details with elapsed time, percentage, current
   activity, log copying, and quick access to the destination folder.
-- Added an English `.env.example` template for local Microsoft Store identity
-  settings.
 - Added localization-catalog parity and narrow-image regression tests.
+- Started the WinUI 3 migration with a native Windows shell that runs the
+  existing Python core as an asynchronous child process.
 
 ### Changed
 
@@ -41,13 +41,10 @@ All notable changes to Similaris are documented in this file.
   pixel wide or high.
 - Added guarded image analysis so malformed or unsupported image data is
   reported without terminating the entire operation.
-- Fixed language switching when the native Tk combobox popdown held focus and
-  custom controls attempted to resolve that internal window.
+- Fixed language switching when native dropdown focus changed during runtime
+  theme updates.
 
 ### Security and privacy
 
-- Removed Partner Center identity values from the tracked package manifest.
-- Store identity values are now loaded from an ignored local `.env` file and
-  safely XML-escaped before manifest generation.
 - Microsoft Store packages, local environments, and generated build artifacts
   remain excluded from source control.

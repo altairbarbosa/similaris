@@ -1,10 +1,10 @@
-<p align="center">
+﻿<p align="center">
   <img src="assets/similaris-icon.png" alt="Similaris logo" width="128">
 </p>
 
 # Similaris
 
-Portable Windows x64 executables are published on the
+Windows x64 builds are published on the
 [GitHub Releases page](https://github.com/altairbarbosa/similaris/releases).
 
 [English](#english) | [Português (Brasil)](#português-brasil) | [Español](#español)
@@ -34,7 +34,7 @@ avoid grouping consecutive photos with different poses.
 - Conservative, balanced, and sensitive duplicate-detection profiles.
 - Fast candidate filtering followed by bidirectional ORB matching, MAGSAC alignment,
   transform validation, and structural comparison.
-- Portable single-file builds for Windows.
+- Native WinUI 3 interface for Windows 10/11.
 
 Supported images: JPG, JPEG, PNG, WebP, BMP, and TIFF. Similaris analyzes only
 files directly inside the selected folder and does not recursively inspect the
@@ -42,18 +42,16 @@ files directly inside the selected folder and does not recursively inspect the
 
 ## Graphical interface
 
-Run from source:
+Run the WinUI 3 interface from source:
 
-```bash
-python3 app.py
+```powershell
+dotnet run --project .\src\Similaris.WinUI\Similaris.WinUI.csproj -c Debug
 ```
 
 The interface detects the system language automatically. The adaptive side
-navigation provides Images, Convert, Image enhancement, and Settings, and
-collapses on narrow windows. Language, appearance, and a scrollable Licenses tab
-are available in Settings. Appearance
-defaults to the operating system theme and can be fixed to Light or Dark; System
-mode also follows theme changes at runtime.
+navigation provides Organize, Convert, Enhance, and Settings. Language,
+appearance, support, and license notices are available in Settings. Appearance
+defaults to the operating system theme and can be fixed to Light or Dark.
 The **Support** tab explains how contributions help the project and opens the
 configured PayPal donation page in the default browser.
 
@@ -113,41 +111,31 @@ Portuguese option names remain supported for compatibility.
 
 ## Build for Windows
 
-On the Windows build computer, install 64-bit Python 3 and run:
+On the Windows build computer, install 64-bit Python 3, the .NET SDK, and the
+Windows App SDK tooling. Then run:
 
-```bat
-build_windows.bat
+```powershell
+.\build_winui3.ps1 -Configuration Release
 ```
 
-The script creates an isolated environment, installs the dependencies,
-downloads and verifies FFmpeg, and packages everything into:
+The script builds the Python core with PyInstaller and publishes the WinUI 3 application for Windows x64. The initial build requires internet access.
 
-```text
-dist\Similaris.exe
-```
-
-The resulting file is portable on 64-bit Windows 10/11. The destination
-computer does not need Python, Pillow, ImageHash, NumPy, OpenCV, FFmpeg, or Real-ESRGAN installed.
-The initial build requires internet access.
+See [docs/winui3-migration.md](docs/winui3-migration.md) for the architecture and
+build commands.
 
 ### Microsoft Store package
 
-After building `dist\Similaris.exe`, create the x64 MSIX upload package from
-PowerShell on a computer with the Windows 10/11 SDK installed:
+Create the x64 MSIX package from PowerShell on a computer with the Windows
+10/11 SDK installed:
 
 ```powershell
-Copy-Item .env.example .env
-# Fill .env with the exact Product identity values from Partner Center.
-.\build_store_msix.ps1 -Version 0.1.0.0
+.\build_winui3.ps1 -Configuration Release -Package
 ```
 
-Upload the generated `dist\Similaris-Store-0.1.0.0-x64.msixupload` directly to
-Partner Center. Store identity values are read from the ignored `.env` file
-and injected into the generated manifest; they are not stored in source
-control. Store packages are built only on the local Windows computer and are
-never generated or published by the GitHub workflows. The Store signs the
-package after certification. Increase the four-part version for every
-submission; do not reuse a version already submitted.
+Package identity values are configured in
+`src\Similaris.WinUI\Package.appxmanifest`. The Store signs the package after
+certification. Increase the four-part version for every submission; do not
+reuse a version already submitted.
 
 The video tab is conversion-only. Similaris currently does not detect duplicate
 videos; it creates MP4/H.264/AAC copies in `converted` and preserves originals.
@@ -189,7 +177,7 @@ não agrupar fotos consecutivas com poses diferentes.
 - Perfis de detecção conservador, equilibrado e sensível.
 - Filtragem rápida de candidatos seguida de correspondência ORB bidirecional,
   alinhamento MAGSAC, validação da transformação e comparação estrutural.
-- Builds portáteis de arquivo único para Windows.
+- Interface nativa WinUI 3 para Windows 10/11.
 
 São compatíveis imagens JPG, JPEG, PNG, WebP, BMP e TIFF. O Similaris analisa
 somente os arquivos diretamente dentro da pasta selecionada e não examina
@@ -197,16 +185,14 @@ recursivamente a pasta `duplicates`.
 
 ### Interface gráfica
 
-```bash
-python3 app.py
+```powershell
+dotnet run --project .\src\Similaris.WinUI\Similaris.WinUI.csproj -c Debug
 ```
 
 A interface detecta automaticamente o idioma do sistema. A navegação lateral
-adaptativa oferece Imagens, Converter, Melhoramento e Configurações e se
-recolhe em janelas estreitas. Idioma, aparência e uma guia rolável de Licenças
-ficam em Configurações. Por
-padrão, a aparência acompanha o sistema operacional e pode ser fixada em Claro
-ou Escuro; o modo Sistema também acompanha mudanças enquanto o programa está aberto.
+adaptativa oferece Organizar, Converter, Aprimorar e Configurações. Idioma,
+aparência, apoio e avisos de licença ficam em Configurações. Por padrão, a
+aparência acompanha o sistema operacional e pode ser fixada em Claro ou Escuro.
 A guia **Apoie** explica como as contribuições ajudam o projeto e abre a página
 configurada de doação do PayPal no navegador padrão.
 
@@ -260,33 +246,26 @@ antigos das opções em português continuam disponíveis por compatibilidade.
 
 ### Construção para Windows
 
-No Windows, instale o Python 3 de 64 bits e execute:
+No Windows, instale o Python 3 de 64 bits, o .NET SDK e as ferramentas do
+Windows App SDK. Depois execute:
 
-```bat
-build_windows.bat
+```powershell
+.\build_winui3.ps1 -Configuration Release
 ```
 
-O script cria um ambiente isolado, instala as dependências, baixa e valida o
-FFmpeg e gera `dist\Similaris.exe`. Esse arquivo é portátil para Windows 10/11
-de 64 bits; o computador de destino não precisa ter Python, Pillow, ImageHash,
-NumPy, OpenCV, FFmpeg ou Real-ESRGAN. A primeira construção requer acesso à internet.
+O script gera o core Python com PyInstaller e publica a aplicação WinUI 3 para Windows x64. A primeira construção requer acesso à internet para baixar FFmpeg e Real-ESRGAN.
 
 #### Pacote para a Microsoft Store
 
-Depois de gerar `dist\Similaris.exe`, crie o pacote MSIX x64 no PowerShell de
-um computador com o Windows 10/11 SDK instalado:
+Crie o pacote MSIX x64 no PowerShell de um computador com o Windows 10/11 SDK
+instalado:
 
 ```powershell
-Copy-Item .env.example .env
-# Preencha o .env com os valores exatos de Identidade do produto do Partner Center.
-.\build_store_msix.ps1 -Version 0.1.0.0
+.\build_winui3.ps1 -Configuration Release -Package
 ```
 
-Envie `dist\Similaris-Store-0.1.0.0-x64.msixupload` diretamente ao Partner
-Center. Os dados de identidade são lidos do `.env` ignorado e injetados no
-manifesto gerado; eles não ficam no controle de versão. Os pacotes da Store são
-gerados somente no computador Windows local e nunca são construídos ou
-publicados pelos workflows do GitHub. A Store assina o pacote após a
+Os dados de identidade do pacote são configurados em
+`src\Similaris.WinUI\Package.appxmanifest`. A Store assina o pacote após a
 certificação. A versão de quatro partes deve ser aumentada a cada envio.
 
 A aba de vídeos serve somente para conversão. Atualmente, o Similaris não
@@ -328,7 +307,7 @@ para no agrupar fotos consecutivas con poses diferentes.
 - Perfiles de detección conservador, equilibrado y sensible.
 - Filtrado rápido de candidatos seguido de correspondencia ORB bidireccional,
   alineación MAGSAC, validación de la transformación y comparación estructural.
-- Builds portátiles de un solo archivo para Windows.
+- Interfaz nativa WinUI 3 para Windows 10/11.
 
 Son compatibles las imágenes JPG, JPEG, PNG, WebP, BMP y TIFF. Similaris
 analiza solo los archivos que están directamente en la carpeta seleccionada y
@@ -336,15 +315,15 @@ no examina de forma recursiva la carpeta `duplicates`.
 
 ### Interfaz gráfica
 
-```bash
-python3 app.py
+```powershell
+dotnet run --project .\src\Similaris.WinUI\Similaris.WinUI.csproj -c Debug
 ```
 
 La interfaz detecta automáticamente el idioma del sistema. La navegación lateral
-adaptable ofrece Imágenes, Convertir, Mejora y Configuración y se
-contrae en ventanas estrechas. El idioma, la apariencia y una pestaña desplazable
-de Licencias se administran desde Configuración. La apariencia sigue el sistema operativo de forma predeterminada
-y se puede fijar en Claro u Oscuro; el modo Sistema sigue los cambios en ejecución.
+adaptable ofrece Organizar, Convertir, Mejorar y Configuración. El idioma, la
+apariencia, el apoyo y los avisos de licencia se administran desde
+Configuración. La apariencia sigue el sistema operativo de forma predeterminada
+y se puede fijar en Claro u Oscuro.
 La pestaña **Apoyar** explica cómo ayudan las contribuciones al proyecto y abre
 la página configurada de donación de PayPal en el navegador predeterminado.
 
@@ -400,35 +379,27 @@ compatibilidad.
 
 ### Construcción para Windows
 
-En Windows, instale Python 3 de 64 bits y ejecute:
+En Windows, instale Python 3 de 64 bits, el .NET SDK y las herramientas de
+Windows App SDK. Luego ejecute:
 
-```bat
-build_windows.bat
+```powershell
+.\build_winui3.ps1 -Configuration Release
 ```
 
-El script crea un entorno aislado, instala las dependencias, descarga y verifica
-FFmpeg y genera `dist\Similaris.exe`. Este archivo es portátil para Windows
-10/11 de 64 bits; el equipo de destino no necesita Python, Pillow, ImageHash,
-NumPy, OpenCV, FFmpeg ni Real-ESRGAN. La primera construcción requiere acceso a Internet.
+El script genera el core Python con PyInstaller y publica la aplicación WinUI 3 para Windows x64. La primera construcción requiere acceso a Internet para descargar FFmpeg y Real-ESRGAN.
 
 #### Paquete para Microsoft Store
 
-Después de generar `dist\Similaris.exe`, cree el paquete MSIX x64 desde
-PowerShell en un equipo con Windows 10/11 SDK instalado:
+Cree el paquete MSIX x64 desde PowerShell en un equipo con Windows 10/11 SDK
+instalado:
 
 ```powershell
-Copy-Item .env.example .env
-# Complete .env con los valores exactos de Identidad del producto de Partner Center.
-.\build_store_msix.ps1 -Version 0.1.0.0
+.\build_winui3.ps1 -Configuration Release -Package
 ```
 
-Suba `dist\Similaris-Store-0.1.0.0-x64.msixupload` directamente a Partner
-Center. Los datos de identidad se leen desde el archivo `.env` ignorado y se
-inyectan en el manifiesto generado; no se guardan en el control de versiones.
-Los paquetes de la Store se generan únicamente en el equipo Windows local y
-nunca se compilan ni se publican mediante los workflows de GitHub. La Store
-firma el paquete después de la certificación. La versión de cuatro partes debe
-aumentar con cada envío.
+Los datos de identidad del paquete se configuran en
+`src\Similaris.WinUI\Package.appxmanifest`. La Store firma el paquete después
+de la certificación. La versión de cuatro partes debe aumentar con cada envío.
 
 La pestaña de vídeos sirve únicamente para conversión. Similaris no detecta
 actualmente vídeos duplicados; crea copias MP4/H.264/AAC en `converted` y
