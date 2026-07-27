@@ -29,8 +29,7 @@ if not exist "%FFMPEG_ZIP%" (
 echo Verifying FFmpeg integrity...
 curl.exe --fail --location --retry 5 --retry-all-errors --output "%FFMPEG_SHA%" "%FFMPEG_URL%.sha256"
 if errorlevel 1 goto :ffmpeg_error
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$expected=((Get-Content '%FFMPEG_SHA%' -Raw).Trim() -split '\s+')[0].ToLower(); $actual=(Get-FileHash '%FFMPEG_ZIP%' -Algorithm SHA256).Hash.ToLower(); if ($expected -ne $actual) { Write-Error 'FFmpeg SHA-256 mismatch'; exit 1 }"
+python -c "import hashlib, os, sys; expected=open(os.environ['FFMPEG_SHA'], encoding='utf-8').read().strip().split()[0].lower(); actual=hashlib.sha256(open(os.environ['FFMPEG_ZIP'], 'rb').read()).hexdigest(); sys.exit(0 if expected == actual else 1)"
 if errorlevel 1 goto :ffmpeg_error
 
 echo Extracting build components...
@@ -48,7 +47,9 @@ if not exist "%REALESRGAN_ZIP%" (
   if errorlevel 1 goto :enhancement_error
 )
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$actual=(Get-FileHash '%REALESRGAN_ZIP%' -Algorithm SHA256).Hash.ToLower(); if ($actual -ne '%REALESRGAN_SHA256%') { Write-Error 'Real-ESRGAN SHA-256 mismatch'; exit 1 }; Expand-Archive -Path '%REALESRGAN_ZIP%' -DestinationPath '%REALESRGAN_DIR%' -Force"
+  "Expand-Archive -Path '%REALESRGAN_ZIP%' -DestinationPath '%REALESRGAN_DIR%' -Force"
+if errorlevel 1 goto :enhancement_error
+python -c "import hashlib, os, sys; actual=hashlib.sha256(open(os.environ['REALESRGAN_ZIP'], 'rb').read()).hexdigest(); expected=os.environ['REALESRGAN_SHA256'].lower(); sys.exit(0 if actual == expected else 1)"
 if errorlevel 1 goto :enhancement_error
 set "REALESRGAN_EXE="
 set "REALESRGAN_MODELS="
@@ -63,7 +64,9 @@ if not defined VCOMP_DLL goto :enhancement_error
 curl.exe --fail --location --retry 5 --retry-all-errors --output "%TOOLS_DIR%\REALESRGAN-LICENSE.txt" "%REALESRGAN_LICENSE_URL%"
 if errorlevel 1 goto :enhancement_error
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "if ((Get-FileHash '%TOOLS_DIR%\REALESRGAN-LICENSE.txt' -Algorithm SHA256).Hash.ToLower() -ne '5abb941454de437b0e90d78dcb72e3688f74e14bcd4e24393273cb5cd0e9c937') { exit 1 }"
+  "if (-not (Test-Path '%TOOLS_DIR%\REALESRGAN-LICENSE.txt')) { exit 1 }"
+if errorlevel 1 goto :enhancement_error
+python -c "import hashlib, os, sys; path=os.path.join(os.environ['TOOLS_DIR'], 'REALESRGAN-LICENSE.txt'); actual=hashlib.sha256(open(path, 'rb').read()).hexdigest(); sys.exit(0 if actual == '5abb941454de437b0e90d78dcb72e3688f74e14bcd4e24393273cb5cd0e9c937' else 1)"
 if errorlevel 1 goto :enhancement_error
 
 if not exist "%TOOLS_DIR%\GPL-3.0.txt" (
