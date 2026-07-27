@@ -83,8 +83,9 @@ call .venv-windows\Scripts\python.exe -m pip install -r requirements-windows.txt
 if errorlevel 1 goto :build_error
 
 echo Building Similaris.exe...
-call .venv-windows\Scripts\pyinstaller.exe --noconfirm --clean --onefile --windowed ^
+call .venv-windows\Scripts\pyinstaller.exe --noconfirm --clean --onedir --windowed ^
   --name Similaris ^
+  --distpath "dist\windows" ^
   --icon "assets\similaris-icon.ico" ^
   --add-binary "%FFMPEG_EXE%;." ^
   --add-binary "%REALESRGAN_EXE%;." ^
@@ -99,9 +100,9 @@ call .venv-windows\Scripts\pyinstaller.exe --noconfirm --clean --onefile --windo
 if errorlevel 1 goto :build_error
 
 echo.
-echo Done: dist\Similaris.exe
-echo This portable file includes Python, libraries, and FFmpeg.
-echo Copy only the EXE to any 64-bit Windows 10/11 computer.
+echo Done: dist\windows\Similaris\Similaris.exe
+echo This portable folder includes Python, libraries, and FFmpeg.
+echo Keep the complete Similaris folder together when copying the application.
 if defined CI exit /b 0
 pause
 exit /b 0

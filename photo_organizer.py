@@ -73,6 +73,7 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--apply", "--aplicar", action="store_true", help="modify files")
     parser.add_argument("--skip-duplicates", "--nao-separar", action="store_true")
     parser.add_argument("--rename", "--renomear", action="store_true", dest="rename_photos")
+    parser.add_argument("--rename-prefix", "--prefixo", default="img")
     parser.add_argument("--duplicates-folder", "--destino", default="duplicates")
     parser.add_argument(
         "--convert-images", "--converter-imagens", action="store_true", dest="convert_images"
@@ -100,7 +101,13 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         "--jpg-quality", "--qualidade-jpg", type=int, default=92, metavar="1-100",
     )
     parser.add_argument(
+        "--image-format", choices=("jpg", "png", "webp"), default="jpg",
+    )
+    parser.add_argument(
         "--video-quality", "--qualidade-video", type=int, default=20, metavar="CRF",
+    )
+    parser.add_argument(
+        "--video-format", choices=("mp4", "avi", "mkv"), default="mp4",
     )
     parser.add_argument("--language", choices=("pt-BR", "en-US", "es-ES"), default="en-US")
     parser.add_argument(
@@ -575,7 +582,24 @@ def photos_in_folder(pasta: Path) -> list[Path]:
     )
 
 
-def rename_photos(fotos: list[Path]) -> list[Path]:
+def valid_rename_prefix(prefixo: str) -> bool:
+    """Return whether a prefix can safely form file names on Windows and Linux."""
+    prefixo = prefixo.strip()
+    reservados = {
+        "CON", "PRN", "AUX", "NUL",
+        *(f"COM{numero}" for numero in range(1, 10)),
+        *(f"LPT{numero}" for numero in range(1, 10)),
+    }
+    return bool(
+        prefixo
+        and prefixo not in {".", ".."}
+        and prefixo[-1] not in {" ", "."}
+        and not any(ord(caractere) < 32 or caractere in '<>:"/\\|?*' for caractere in prefixo)
+        and prefixo.upper() not in reservados
+    )
+
+
+def rename_photos(fotos: list[Path], prefixo: str = "img") -> list[Path]:
     token = uuid.uuid4().hex
     temporarios: list[tuple[Path, str]] = []
     for numero, origem in enumerate(fotos, 1):
@@ -585,7 +609,7 @@ def rename_photos(fotos: list[Path]) -> list[Path]:
 
     resultado: list[Path] = []
     for numero, (temporario, extensao) in enumerate(temporarios, 1):
-        alvo = temporario.with_name(f"img ({numero}){extensao}")
+        alvo = temporario.with_name(f"{prefixo} ({numero}){extensao}")
         temporario.rename(alvo)
         resultado.append(alvo)
     return resultado
@@ -595,30 +619,47 @@ def converted_name(origem: Path, destino: Path, extensao: str) -> Path:
     return available_path(destino / f"{origem.stem}{extensao}")
 
 
-def convert_image(origem: Path, destino: Path, qualidade: int) -> Path:
-    alvo = converted_name(origem, destino, ".jpg")
+def convert_image(
+    origem: Path, destino: Path, qualidade: int, formato: str = "jpg",
+) -> Path:
+    formatos = {
+        "jpg": (".jpg", "JPEG"),
+        "png": (".png", "PNG"),
+        "webp": (".webp", "WEBP"),
+    }
+    if formato not in formatos:
+        raise ValueError(f"formato de imagem não suportado: {formato}")
+    extensao, formato_pillow = formatos[formato]
+    alvo = converted_name(origem, destino, extensao)
     temporario = alvo.with_name(f".{alvo.name}.{uuid.uuid4().hex}.tmp")
     try:
         with Image.open(origem) as imagem:
             imagem = ImageOps.exif_transpose(imagem)
-            if imagem.mode in {"RGBA", "LA"} or (
+            possui_transparencia = imagem.mode in {"RGBA", "LA"} or (
                 imagem.mode == "P" and "transparency" in imagem.info
-            ):
+            )
+            if formato == "jpg" and possui_transparencia:
                 rgba = imagem.convert("RGBA")
                 fundo = Image.new("RGB", rgba.size, "white")
                 fundo.paste(rgba, mask=rgba.getchannel("A"))
                 imagem = fundo
+            elif formato == "jpg":
+                imagem = imagem.convert("RGB")
+            elif possui_transparencia:
+                imagem = imagem.convert("RGBA")
             else:
                 imagem = imagem.convert("RGB")
             # Não redimensiona: preserva toda a resolução da imagem de origem.
-            imagem.save(
-                temporario,
-                format="JPEG",
-                quality=qualidade,
-                optimize=True,
-                progressive=True,
-                subsampling=0,
-            )
+            opcoes: dict[str, object] = {"format": formato_pillow}
+            if formato == "jpg":
+                opcoes.update(
+                    quality=qualidade, optimize=True, progressive=True, subsampling=0,
+                )
+            elif formato == "png":
+                opcoes.update(optimize=True, compress_level=6)
+            else:
+                opcoes.update(quality=qualidade, method=6)
+            imagem.save(temporario, **opcoes)
         os.replace(temporario, alvo)
         return alvo
     finally:
@@ -626,21 +667,33 @@ def convert_image(origem: Path, destino: Path, qualidade: int) -> Path:
             temporario.unlink()
 
 
-def convert_video(origem: Path, destino: Path, crf: int) -> Path:
+def convert_video(
+    origem: Path, destino: Path, crf: int, formato: str = "mp4",
+) -> Path:
     ffmpeg = find_ffmpeg()
     if not ffmpeg:
         raise RuntimeError("ffmpeg não encontrado; instale-o com: sudo apt install ffmpeg")
-    alvo = converted_name(origem, destino, ".mp4")
-    temporario = alvo.with_name(f".{alvo.stem}.{uuid.uuid4().hex}.mp4")
+    if formato not in {"mp4", "avi", "mkv"}:
+        raise ValueError(f"formato de vídeo não suportado: {formato}")
+    alvo = converted_name(origem, destino, f".{formato}")
+    temporario = alvo.with_name(f".{alvo.stem}.{uuid.uuid4().hex}.{formato}")
+    codecs = (
+        ["-c:v", "mpeg4", "-q:v", str(max(1, min(31, round(crf / 4)))),
+         "-c:a", "libmp3lame", "-b:a", "192k"]
+        if formato == "avi"
+        else ["-c:v", "libx264", "-preset", "slow", "-crf", str(crf),
+              "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k"]
+    )
     comando = [
         ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(origem),
         "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
-        "-c:v", "libx264", "-preset", "slow", "-crf", str(crf),
         # H.264 exige dimensões pares; reduz no máximo um pixel quando necessário.
         "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
-        "-movflags", "+faststart", str(temporario),
+        *codecs,
     ]
+    if formato == "mp4":
+        comando.extend(("-movflags", "+faststart"))
+    comando.append(str(temporario))
     try:
         subprocess.run(comando, check=True, **subprocess_window_options())
         os.replace(temporario, alvo)
@@ -858,7 +911,9 @@ def run_conversions(
     if imagens:
         for origem in (p for p in entradas if p.suffix.lower() in IMAGE_EXTENSIONS):
             try:
-                alvo = convert_image(origem, destino, args.jpg_quality)
+                alvo = convert_image(
+                    origem, destino, args.jpg_quality, args.image_format,
+                )
                 feitas_imagens += 1
                 localized_print(args.language, f"  imagem: {origem.name} -> {alvo.name}")
             except Exception as erro:
@@ -867,7 +922,9 @@ def run_conversions(
     if videos:
         for origem in (p for p in entradas if p.suffix.lower() in VIDEO_EXTENSIONS):
             try:
-                alvo = convert_video(origem, destino, args.video_quality)
+                alvo = convert_video(
+                    origem, destino, args.video_quality, args.video_format,
+                )
                 feitas_videos += 1
                 localized_print(args.language, f"  vídeo: {origem.name} -> {alvo.name}")
             except Exception as erro:
@@ -897,6 +954,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if not 0 <= args.video_quality <= 51:
         localized_print(args.language, "--qualidade-video deve estar entre 0 e 51.", file=sys.stderr)
+        return 2
+    args.rename_prefix = args.rename_prefix.strip()
+    if args.rename_photos and not valid_rename_prefix(args.rename_prefix):
+        localized_print(args.language, "--prefixo contém um nome ou caractere inválido.", file=sys.stderr)
         return 2
 
     quer_converter = args.convert_images or args.convert_videos or args.convert_all
@@ -952,7 +1013,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         restantes = caminhos
         if args.rename_photos:
-            restantes = rename_photos(restantes)
+            restantes = rename_photos(restantes, args.rename_prefix)
             localized_print(args.language, f"Renomeadas {len(restantes)} imagens.")
         return 0
 
@@ -967,7 +1028,7 @@ def main(argv: list[str] | None = None) -> int:
         _LAST_DUPLICATE_PLAN = None
         restantes = [path for path in caminhos if path.exists()]
         if args.rename_photos:
-            restantes = rename_photos(restantes)
+            restantes = rename_photos(restantes, args.rename_prefix)
         localized_print(args.language, f"Concluído: {len(records)} repetida(s) movida(s) para {destino}.")
         localized_print(args.language, f"Relatório criado em {report}.")
         if args.rename_photos:
@@ -1019,7 +1080,7 @@ def main(argv: list[str] | None = None) -> int:
     _LAST_DUPLICATE_PLAN = None
     restantes = [path for path in caminhos if path.exists()]
     if args.rename_photos:
-        restantes = rename_photos(restantes)
+        restantes = rename_photos(restantes, args.rename_prefix)
 
     localized_print(args.language, f"\nConcluído: {len(records)} repetida(s) movida(s) para {destino}.")
     localized_print(args.language, f"Relatório criado em {report}.")
