@@ -8,9 +8,6 @@ The portable Windows application includes an FFmpeg executable supplied by
 https://www.gyan.dev/ffmpeg/builds/, a build source listed by the official
 FFmpeg project at https://ffmpeg.org/download.html.
 
-The portable Linux application includes a static FFmpeg executable supplied by
-https://johnvansickle.com/ffmpeg/.
-
 These FFmpeg builds are distributed under the GNU General Public License,
 version 3 (GPLv3). The complete license text is bundled with the application as
 GPL-3.0.txt. FFmpeg information and source code are available at:

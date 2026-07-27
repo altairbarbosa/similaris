@@ -583,7 +583,7 @@ def photos_in_folder(pasta: Path) -> list[Path]:
 
 
 def valid_rename_prefix(prefixo: str) -> bool:
-    """Return whether a prefix can safely form file names on Windows and Linux."""
+    """Return whether a prefix can safely form Windows file names."""
     prefixo = prefixo.strip()
     reservados = {
         "CON", "PRN", "AUX", "NUL",

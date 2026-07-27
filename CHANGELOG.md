@@ -28,10 +28,10 @@ All notable changes to Similaris are documented in this file.
 - Replaced the settings text glyph with a full-size navigation icon consistent
   with the rest of the sidebar.
 - Replaced platform-native checkboxes, radio buttons, sliders, and dropdowns
-  with theme-aware controls that render consistently on Windows and Linux.
+  with theme-aware controls that render consistently on Windows.
 - Increased button hierarchy, spacing, hit targets, and selected-state clarity.
-- Restricted GitHub release automation to the traditional Windows x64 and
-  Linux x64 portable builds.
+- Restricted GitHub release automation to the traditional Windows x64 portable
+  build.
 - Moved Microsoft Store MSIX generation to a local-only PowerShell workflow.
 - Updated Store packaging documentation in all three supported languages.
 
@@ -41,8 +41,8 @@ All notable changes to Similaris are documented in this file.
   pixel wide or high.
 - Added guarded image analysis so malformed or unsupported image data is
   reported without terminating the entire operation.
-- Fixed language switching on Linux when the native Tk combobox popdown held
-  focus and custom controls attempted to resolve that internal window.
+- Fixed language switching when the native Tk combobox popdown held focus and
+  custom controls attempted to resolve that internal window.
 
 ### Security and privacy
 

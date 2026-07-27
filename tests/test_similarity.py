@@ -259,7 +259,7 @@ class SimilarityPipelineTests(unittest.TestCase):
                 photo_organizer.subprocess_window_options(),
                 {"creationflags": 0x08000000},
             )
-        with patch.object(photo_organizer.sys, "platform", "linux"):
+        with patch.object(photo_organizer.sys, "platform", "darwin"):
             self.assertEqual(photo_organizer.subprocess_window_options(), {})
 
     def test_enhance_only_requires_enhancement_operation(self) -> None:
