@@ -322,10 +322,30 @@ if ($LASTEXITCODE -ne 0) {
 $storePackages = Get-ChildItem (Join-Path $projectRoot 'src\Similaris.WinUI\AppPackages') -Recurse -File |
     Where-Object { $_.Extension -in '.msix', '.msixupload', '.appx', '.appxupload' }
 foreach ($package in $storePackages) {
-    Copy-Item -LiteralPath $package.FullName -Destination (Join-Path $storeAssets $package.Name) -Force
+    if ($package.Extension -in '.msixupload', '.appxupload') {
+        Copy-Item -LiteralPath $package.FullName -Destination (Join-Path $storeAssets $package.Name) -Force
+    }
 }
 
-if (-not (Get-ChildItem $storeAssets -File -ErrorAction SilentlyContinue)) {
+$appMsix = $storePackages |
+    Where-Object { $_.Extension -eq '.msix' -and $_.Name -like 'Similaris*' } |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+if ($appMsix) {
+    $storeUploadName = "Similaris-Store-$packageVersion-x64.msixupload"
+    $storeUploadPath = Join-Path $storeAssets $storeUploadName
+    if (Test-Path $storeUploadPath) {
+        Remove-Item -LiteralPath $storeUploadPath -Force
+    }
+    $storeUploadZipPath = Join-Path $storeAssets "$storeUploadName.zip"
+    if (Test-Path $storeUploadZipPath) {
+        Remove-Item -LiteralPath $storeUploadZipPath -Force
+    }
+    Compress-Archive -Path $appMsix.FullName -DestinationPath $storeUploadZipPath -Force
+    Move-Item -LiteralPath $storeUploadZipPath -Destination $storeUploadPath -Force
+}
+
+if (-not (Get-ChildItem $storeAssets -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in '.msixupload', '.appxupload' })) {
     throw 'Store package was not generated.'
 }
 
