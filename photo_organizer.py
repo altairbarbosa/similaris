@@ -25,6 +25,7 @@ except ImportError:
         "Dependências ausentes. Instale com:\n"
         "  python3 -m pip install Pillow ImageHash\n",
         file=sys.stderr,
+        flush=True,
     )
     raise SystemExit(2)
 
@@ -672,33 +673,42 @@ def convert_video(
 ) -> Path:
     ffmpeg = find_ffmpeg()
     if not ffmpeg:
-        raise RuntimeError("ffmpeg não encontrado; instale-o com: sudo apt install ffmpeg")
+        raise RuntimeError(
+            "ffmpeg não encontrado. Verifique se o ffmpeg está instalado ou incluído no Similaris."
+        )
     if formato not in {"mp4", "avi", "mkv"}:
         raise ValueError(f"formato de vídeo não suportado: {formato}")
     alvo = converted_name(origem, destino, f".{formato}")
     temporario = alvo.with_name(f".{alvo.stem}.{uuid.uuid4().hex}.{formato}")
+    h264_crf = max(18, min(35, crf))
     codecs = (
         ["-c:v", "mpeg4", "-q:v", str(max(1, min(31, round(crf / 4)))),
          "-c:a", "libmp3lame", "-b:a", "192k"]
         if formato == "avi"
-        else ["-c:v", "libx264", "-preset", "slow", "-crf", str(crf),
-              "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k"]
+        else ["-c:v", "libx264", "-preset", "medium", "-crf", str(h264_crf),
+              "-profile:v", "high", "-tag:v", "avc1", "-c:a", "aac", "-b:a", "192k"]
     )
     comando = [
         ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(origem),
-        "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
+        "-map", "0:V:0", "-map", "0:a?", "-map_metadata", "0",
         # H.264 exige dimensões pares; reduz no máximo um pixel quando necessário.
-        "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+        "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2:out_range=tv,format=yuv420p",
         *codecs,
     ]
     if formato == "mp4":
         comando.extend(("-movflags", "+faststart"))
     comando.append(str(temporario))
     try:
-        subprocess.run(comando, check=True, **subprocess_window_options())
+        subprocess.run(
+            comando, check=True, capture_output=True, text=True,
+            **subprocess_window_options(),
+        )
         os.replace(temporario, alvo)
         return alvo
     except subprocess.CalledProcessError as erro:
+        details = (erro.stderr or erro.stdout or "").strip()
+        if details:
+            raise RuntimeError(f"ffmpeg falhou com código {erro.returncode}: {details}") from erro
         raise RuntimeError(f"ffmpeg falhou com código {erro.returncode}") from erro
     finally:
         if temporario.exists():
@@ -721,6 +731,11 @@ def find_ffmpeg() -> str | None:
     for candidato in candidatos:
         if candidato.is_file():
             return str(candidato)
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return None
     return None
 
 
@@ -730,12 +745,36 @@ def find_enhancement_engine() -> str | None:
     if found:
         return found
     resource_dir = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    project_dir = Path(__file__).resolve().parent
+    repository_candidates: list[Path] = []
+    for start in (project_dir, Path(sys.executable).resolve().parent):
+        repository_candidates.extend(
+            parent for parent in (start, *start.parents)
+            if (parent / ".build-tools" / "realesrgan-full").is_dir()
+        )
+    search_roots = (
+        resource_dir,
+        Path(sys.executable).resolve().parent,
+        project_dir,
+        project_dir / ".build-tools" / "realesrgan-full",
+        project_dir / "dist" / "python-core" / "SimilarisCore",
+        *(root / ".build-tools" / "realesrgan-full" for root in repository_candidates),
+        *(root / "dist" / "python-core" / "SimilarisCore" for root in repository_candidates),
+    )
     candidates = (
         resource_dir / executable_name,
         Path(sys.executable).resolve().parent / executable_name,
-        Path(__file__).resolve().parent / executable_name,
+        project_dir / executable_name,
     )
-    return next((str(candidate) for candidate in candidates if candidate.is_file()), None)
+    direct_match = next((str(candidate) for candidate in candidates if candidate.is_file()), None)
+    if direct_match:
+        return direct_match
+    for root in search_roots:
+        if root.is_dir():
+            match = next(root.rglob(executable_name), None)
+            if match and match.is_file():
+                return str(match)
+    return None
 
 
 def enhance_image(
@@ -753,16 +792,23 @@ def enhance_image(
     model_directory = Path(engine).resolve().parent / "models"
     if not model_directory.is_dir():
         raise RuntimeError("Real-ESRGAN model files were not found")
+    engine_scale = 4
     with tempfile.TemporaryDirectory(prefix="similaris-enhance-") as temporary_folder:
         normalized = Path(temporary_folder) / "input.png"
         temporary_output = Path(temporary_folder) / "output.png"
         if progress:
             progress("preparando a imagem")
         with Image.open(source) as image:
-            ImageOps.exif_transpose(image).save(normalized, format="PNG")
+            input_image = ImageOps.exif_transpose(image)
+            input_alpha = (
+                input_image.getchannel("A").copy()
+                if input_image.mode in {"LA", "RGBA"} and input_image.getchannel("A").getextrema()[0] < 255
+                else None
+            )
+            input_image.convert("RGB").save(normalized, format="PNG")
         command = [
             engine, "-i", str(normalized), "-o", str(temporary_output),
-            "-s", str(scale), "-n", model_name, "-m", str(model_directory), "-f", "png",
+            "-s", str(engine_scale), "-n", model_name, "-m", str(model_directory), "-f", "png",
         ]
         try:
             if progress:
@@ -782,11 +828,21 @@ def enhance_image(
         if progress:
             progress("validando o resultado")
         with Image.open(normalized) as input_image, Image.open(temporary_output) as output_image:
+            engine_size = (input_image.width * engine_scale, input_image.height * engine_scale)
+            if output_image.size != engine_size:
+                raise RuntimeError(
+                    f"Real-ESRGAN returned {output_image.size}; expected {engine_size}"
+                )
             expected_size = (input_image.width * scale, input_image.height * scale)
             if output_image.size != expected_size:
-                raise RuntimeError(
-                    f"Real-ESRGAN returned {output_image.size}; expected {expected_size}"
-                )
+                output_image = output_image.resize(expected_size, Image.Resampling.LANCZOS)
+            if input_alpha is not None:
+                alpha = input_alpha.resize(output_image.size, Image.Resampling.LANCZOS)
+                result = output_image.convert("RGBA")
+                result.putalpha(alpha)
+            else:
+                result = output_image.convert("RGB")
+            result.save(temporary_output, format="PNG")
         os.replace(temporary_output, target)
         if progress:
             progress("arquivo salvo")
@@ -855,6 +911,10 @@ OUTPUT_TRANSLATIONS = {
         "preparando a imagem": "preparing image", "Real-ESRGAN em execução": "Real-ESRGAN is running",
         "validando o resultado": "validating result", "arquivo salvo": "file saved",
         "etapa concluída": "step completed", "falha em": "failed on",
+        "Falha na conversão de": "Conversion failed for",
+        "ffmpeg não encontrado.": "ffmpeg was not found.",
+        "Verifique se o ffmpeg está instalado ou incluído no Similaris.": "Verify that ffmpeg is installed or included with Similaris.",
+        "ffmpeg falhou com código": "ffmpeg failed with code",
     },
     "es-ES": {
         "  imagem:": "  imagen:", "  vídeo:": "  vídeo:", "Pasta inexistente:": "La carpeta no existe:",
@@ -881,6 +941,10 @@ OUTPUT_TRANSLATIONS = {
         "preparando a imagem": "preparando imagen", "Real-ESRGAN em execução": "Real-ESRGAN está en ejecución",
         "validando o resultado": "validando resultado", "arquivo salvo": "archivo guardado",
         "etapa concluída": "etapa completada", "falha em": "falló en",
+        "Falha na conversão de": "Falló la conversión de",
+        "ffmpeg não encontrado.": "No se encontró ffmpeg.",
+        "Verifique se o ffmpeg está instalado ou incluído no Similaris.": "Verifique que ffmpeg esté instalado o incluido con Similaris.",
+        "ffmpeg falhou com código": "ffmpeg falló con código",
     },
 }
 
@@ -889,6 +953,7 @@ def localized_print(language: str, *values: object, **kwargs: object) -> None:
     text = " ".join(str(value) for value in values)
     for source, translation in OUTPUT_TRANSLATIONS.get(language, {}).items():
         text = text.replace(source, translation)
+    kwargs.setdefault("flush", True)
     print(text, **kwargs)
 
 
@@ -917,7 +982,9 @@ def run_conversions(
                 feitas_imagens += 1
                 localized_print(args.language, f"  imagem: {origem.name} -> {alvo.name}")
             except Exception as erro:
-                falhas.append(f"{origem.name}: {erro}")
+                failure = f"{origem.name}: {erro}"
+                falhas.append(failure)
+                localized_print(args.language, f"Falha na conversão de {failure}", file=sys.stderr)
 
     if videos:
         for origem in (p for p in entradas if p.suffix.lower() in VIDEO_EXTENSIONS):
@@ -928,7 +995,9 @@ def run_conversions(
                 feitas_videos += 1
                 localized_print(args.language, f"  vídeo: {origem.name} -> {alvo.name}")
             except Exception as erro:
-                falhas.append(f"{origem.name}: {erro}")
+                failure = f"{origem.name}: {erro}"
+                falhas.append(failure)
+                localized_print(args.language, f"Falha na conversão de {failure}", file=sys.stderr)
     return feitas_imagens, feitas_videos, falhas
 
 
@@ -1063,7 +1132,7 @@ def main(argv: list[str] | None = None) -> int:
         ordem = sorted(grupo, key=lambda i: (fotos[i].area, fotos[i].tamanho), reverse=True)
         localized_print(args.language, f"  Grupo {numero}: manter {fotos[ordem[0]].caminho.name}")
         for indice in ordem[1:]:
-            localized_print(args.language, f"    separate {fotos[indice].caminho.name}")
+            localized_print(args.language, f"    separar {fotos[indice].caminho.name}")
 
     if falhas:
         localized_print(args.language, f"Aviso: {len(falhas)} arquivo(s) não puderam ser lidos:")

@@ -4,7 +4,7 @@ THIRD-PARTY COMPONENT NOTICES
 Similaris source code is licensed under the MIT License. The MIT License does
 not replace or alter the licenses of the third-party components listed below.
 
-The portable Windows application includes an FFmpeg executable supplied by
+The Windows application includes an FFmpeg executable supplied by
 https://www.gyan.dev/ffmpeg/builds/, a build source listed by the official
 FFmpeg project at https://ffmpeg.org/download.html.
 

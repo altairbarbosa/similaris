@@ -1,0 +1,448 @@
+﻿<Window
+    x:Class="Similaris.WinUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Similaris">
+
+    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.Resources>
+            <Style x:Key="SectionCard" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="24" />
+                <Setter Property="Margin" Value="0,0,0,18" />
+            </Style>
+            <Style x:Key="QuietIconButton" TargetType="Button">
+                <Setter Property="Width" Value="36" />
+                <Setter Property="Height" Value="36" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="CornerRadius" Value="18" />
+                <Setter Property="Background" Value="{ThemeResource SubtleFillColorTransparentBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource SubtleFillColorTransparentBrush}" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+            </Style>
+            <Style x:Key="SectionTitle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="18" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Margin" Value="0,0,0,4" />
+            </Style>
+            <Style x:Key="MutedText" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+        </Grid.Resources>
+
+        <NavigationView
+            x:Name="RootNavigation"
+            CompactPaneLength="60"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            OpenPaneLength="300"
+            SelectionChanged="RootNavigation_SelectionChanged">
+
+            <NavigationView.PaneHeader>
+                <StackPanel Orientation="Horizontal" Spacing="12" Margin="18,8,0,18">
+                    <Image Source="Assets/similaris-icon.png" Width="30" Height="30" Stretch="Uniform" />
+                    <TextBlock Text="Similaris" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </StackPanel>
+            </NavigationView.PaneHeader>
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="OrganizeNavItem" Content="Organize" Tag="organize" IsSelected="True">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Pictures" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="ConvertNavItem" Content="Convert" Tag="convert">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Video" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="EnhanceNavItem" Content="Enhance" Tag="enhance">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Repair" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem x:Name="SettingsNavItem" Content="Settings" Tag="settings">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Setting" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border
+                    Grid.Row="0"
+                    Padding="24,20"
+                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,0,1">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock x:Name="PageTitleText" Text="Organize images" FontSize="28" FontWeight="SemiBold" />
+                            <TextBlock x:Name="PageDescriptionText" Text="Find visual duplicates and standardize file names with the Python core." Style="{StaticResource MutedText}" />
+                        </StackPanel>
+                        <StackPanel x:Name="ActionButtonsPanel" Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_Click" IsEnabled="False" />
+                            <Button x:Name="StartButton" Content="Start" Click="StartButton_Click" Style="{ThemeResource AccentButtonStyle}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <ScrollViewer x:Name="MainScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="MainScrollViewer_SizeChanged">
+                    <Grid x:Name="MainContentGrid" Padding="24" ColumnSpacing="24" HorizontalAlignment="Center" MinWidth="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="340" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid x:Name="OperationContent" MinWidth="0" ColumnSpacing="16" HorizontalAlignment="Stretch">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="SourceCard" Style="{StaticResource SectionCard}">
+                                <StackPanel Spacing="16">
+                                    <StackPanel>
+                                        <TextBlock x:Name="SourceTitleText" Text="Source" Style="{StaticResource SectionTitle}" />
+                                        <TextBlock x:Name="SourceDescriptionText" Text="Choose the folder the Python core will process." Style="{StaticResource MutedText}" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="14">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <RadioButton x:Name="SourceModeFolderRadio" Content="Folder" GroupName="SourceMode" IsChecked="True" Checked="SourceModeRadio_Checked" />
+                                            <RadioButton x:Name="SourceModeFilesRadio" Content="Files" GroupName="SourceMode" Checked="SourceModeRadio_Checked" />
+                                        </StackPanel>
+                                        <Grid ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="SourcePathBox" PlaceholderText="No source selected" IsReadOnly="True" MinWidth="0" />
+                                            <Button x:Name="ChooseSourceButton" Grid.Column="1" Content="Choose..." Click="ChooseSourceButton_Click" />
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border x:Name="DestinationCard" Grid.Row="1" Style="{StaticResource SectionCard}">
+                                <StackPanel Spacing="16">
+                                    <StackPanel>
+                                        <TextBlock x:Name="DestinationTitleText" Text="Destination" Style="{StaticResource SectionTitle}" />
+                                        <TextBlock x:Name="DestinationDescriptionText" Text="Leave empty to use the operation's default output folder." Style="{StaticResource MutedText}" />
+                                    </StackPanel>
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="OutputPathBox" PlaceholderText="Default destination" IsReadOnly="True" MinWidth="0" />
+                                        <Button x:Name="ChooseOutputButton" Grid.Column="1" Content="Choose..." Click="ChooseOutputButton_Click" />
+                                        <Button x:Name="ClearOutputButton" Grid.Column="2" Content="Clear" Click="ClearOutputButton_Click" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border x:Name="OrganizePage" Grid.Row="2" Style="{StaticResource SectionCard}">
+                                <StackPanel Spacing="18">
+                                    <StackPanel>
+                                        <TextBlock x:Name="OrganizeSectionTitleText" Text="Image organization" Style="{StaticResource SectionTitle}" />
+                                        <TextBlock x:Name="OrganizeSectionDescriptionText" Text="Separate duplicates and optionally standardize file names." Style="{StaticResource MutedText}" />
+                                    </StackPanel>
+                                    <Grid ColumnSpacing="24" RowSpacing="18">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MinWidth="0" />
+                                            <ColumnDefinition Width="*" MinWidth="0" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.ColumnSpan="2" Spacing="8">
+                                            <TextBlock x:Name="SensitivityLabelText" Text="Sensitivity" />
+                                            <RadioButtons x:Name="SensitivityOptions" MaxColumns="3" SelectedIndex="1">
+                                                <RadioButton x:Name="SensitivitySaferItem" Tag="conservative">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock x:Name="SensitivitySaferText" Text="Safer" />
+                                                        <TextBlock x:Name="SensitivitySaferDescriptionText" Text="Fewer false matches." FontSize="11" Style="{StaticResource MutedText}" />
+                                                    </StackPanel>
+                                                </RadioButton>
+                                                <RadioButton x:Name="SensitivityBalancedItem" Tag="balanced">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock x:Name="SensitivityBalancedText" Text="Balanced" />
+                                                        <TextBlock x:Name="SensitivityBalancedDescriptionText" Text="Recommended." FontSize="11" Style="{StaticResource MutedText}" />
+                                                    </StackPanel>
+                                                </RadioButton>
+                                                <RadioButton x:Name="SensitivityBroaderItem" Tag="sensitive">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock x:Name="SensitivityBroaderText" Text="Broader" />
+                                                        <TextBlock x:Name="SensitivityBroaderDescriptionText" Text="Finds more." FontSize="11" Style="{StaticResource MutedText}" />
+                                                    </StackPanel>
+                                                </RadioButton>
+                                            </RadioButtons>
+                                        </StackPanel>
+                                        <CheckBox
+                                            x:Name="RenameFilesCheck"
+                                            Grid.Row="1"
+                                            Content="Rename files as img (N)"
+                                            HorizontalAlignment="Left"
+                                            Checked="RenameFilesCheck_Changed"
+                                            Unchecked="RenameFilesCheck_Changed" />
+                                        <StackPanel
+                                            x:Name="RenamePrefixPanel"
+                                            Grid.Row="1"
+                                            Grid.Column="1"
+                                            Spacing="6"
+                                            HorizontalAlignment="Stretch"
+                                            Visibility="Collapsed">
+                                            <TextBox
+                                                x:Name="RenamePrefixBox"
+                                                Header="Rename prefix"
+                                                Text="img"
+                                                MinWidth="180"
+                                                HorizontalAlignment="Stretch" />
+                                            <TextBlock x:Name="RenameExampleText" Text="Example: img (1).jpg" Style="{StaticResource MutedText}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border x:Name="ConvertPage" Grid.Row="2" Style="{StaticResource SectionCard}" Visibility="Collapsed">
+                                <StackPanel Spacing="18">
+                                    <StackPanel>
+                                        <TextBlock x:Name="ConvertSectionTitleText" Text="File conversion" Style="{StaticResource SectionTitle}" />
+                                        <TextBlock x:Name="ConvertSectionDescriptionText" Text="Create converted copies while preserving originals." Style="{StaticResource MutedText}" />
+                                    </StackPanel>
+                                    <Grid ColumnSpacing="24" RowSpacing="18">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MinWidth="0" />
+                                            <ColumnDefinition Width="*" MinWidth="0" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.ColumnSpan="2" Spacing="8">
+                                            <TextBlock x:Name="ConvertTypeLabelText" Text="Conversion type" />
+                                            <RadioButtons x:Name="ConvertTypeOptions" MaxColumns="2" SelectedIndex="0" SelectionChanged="ConvertTypeOptions_SelectionChanged">
+                                                <RadioButton x:Name="ConvertImagesOption" Content="Images" Tag="images" />
+                                                <RadioButton x:Name="ConvertVideosOption" Content="Videos" Tag="videos" />
+                                            </RadioButtons>
+                                        </StackPanel>
+
+                                        <Grid x:Name="ImageConversionPanel" Grid.Row="1" Grid.ColumnSpan="2" ColumnSpacing="24">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" MinWidth="0" />
+                                                <ColumnDefinition Width="*" MinWidth="0" />
+                                            </Grid.ColumnDefinitions>
+                                            <ComboBox x:Name="ImageFormatCombo" Header="Image format" SelectedIndex="0" MinWidth="160" HorizontalAlignment="Stretch">
+                                                <ComboBoxItem Content="JPG" Tag="jpg" />
+                                                <ComboBoxItem Content="PNG" Tag="png" />
+                                                <ComboBoxItem Content="WebP" Tag="webp" />
+                                            </ComboBox>
+                                            <StackPanel Grid.Column="1" Spacing="8">
+                                                <TextBlock x:Name="JpgQualityText" Text="JPG quality" />
+                                                <Slider x:Name="JpgQualitySlider" Minimum="1" Maximum="100" Value="92" StepFrequency="1" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Grid x:Name="VideoConversionPanel" Grid.Row="1" Grid.ColumnSpan="2" ColumnSpacing="24" Visibility="Collapsed">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" MinWidth="0" />
+                                                <ColumnDefinition Width="*" MinWidth="0" />
+                                            </Grid.ColumnDefinitions>
+                                            <ComboBox x:Name="VideoFormatCombo" Header="Video format" SelectedIndex="0" MinWidth="160" HorizontalAlignment="Stretch">
+                                                <ComboBoxItem Content="MP4" Tag="mp4" />
+                                                <ComboBoxItem Content="AVI" Tag="avi" />
+                                                <ComboBoxItem Content="MKV" Tag="mkv" />
+                                            </ComboBox>
+                                            <StackPanel Grid.Column="1" Spacing="8">
+                                                <TextBlock x:Name="VideoQualityText" Text="Video quality" />
+                                                <Slider x:Name="VideoQualitySlider" Minimum="1" Maximum="100" Value="72" StepFrequency="1" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border x:Name="EnhancePage" Grid.Row="2" Style="{StaticResource SectionCard}" Visibility="Collapsed">
+                                <StackPanel Spacing="18">
+                                    <StackPanel>
+                                        <TextBlock x:Name="EnhanceSectionTitleText" Text="Image enhancement" Style="{StaticResource SectionTitle}" />
+                                        <TextBlock x:Name="EnhanceSectionDescriptionText" Text="Run Real-ESRGAN locally through the Python core." Style="{StaticResource MutedText}" />
+                                    </StackPanel>
+                                    <Grid ColumnSpacing="24">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MinWidth="0" />
+                                            <ColumnDefinition Width="*" MinWidth="0" />
+                                        </Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="EnhancementScaleCombo" Header="Upscale" SelectedIndex="0" MinWidth="140" HorizontalAlignment="Stretch">
+                                            <ComboBoxItem Content="2x" Tag="2" />
+                                            <ComboBoxItem Content="3x" Tag="3" />
+                                            <ComboBoxItem Content="4x" Tag="4" />
+                                        </ComboBox>
+                                        <ComboBox x:Name="EnhancementModelCombo" Grid.Column="1" Header="Image type" SelectedIndex="0" MinWidth="160" HorizontalAlignment="Stretch">
+                                            <ComboBoxItem x:Name="EnhancementPhotoItem" Content="Photo" Tag="photo" />
+                                            <ComboBoxItem x:Name="EnhancementIllustrationItem" Content="Illustration" Tag="illustration" />
+                                        </ComboBox>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <StackPanel x:Name="SettingsPage" Grid.ColumnSpan="2" Visibility="Collapsed" HorizontalAlignment="Stretch">
+                            <Border Style="{StaticResource SectionCard}">
+                                <Grid ColumnSpacing="18">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source="Assets/similaris-icon.png" Width="96" Height="96" Stretch="Uniform" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <TextBlock Text="Similaris" FontSize="30" FontWeight="SemiBold" VerticalAlignment="Bottom" />
+                                            <TextBlock x:Name="AppVersionText" Text="v0.0.0.0" FontSize="13" Style="{StaticResource MutedText}" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                                        </StackPanel>
+                                        <TextBlock x:Name="BrandDescriptionText" Text="Find duplicate images, convert media, and enhance images locally." Style="{StaticResource MutedText}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <StackPanel Spacing="12">
+                                <SelectorBar x:Name="SettingsSelector" SelectionChanged="SettingsSelector_SelectionChanged">
+                                    <SelectorBarItem x:Name="AppearanceSelectorItem" Text="Appearance" IsSelected="True" />
+                                    <SelectorBarItem x:Name="SupportSelectorItem" Text="Support" />
+                                    <SelectorBarItem x:Name="LicensesSelectorItem" Text="Licenses" />
+                                </SelectorBar>
+
+                                <Grid>
+                                    <Border x:Name="AppearanceSettingsPanel" Style="{StaticResource SectionCard}" Margin="0">
+                                        <StackPanel Spacing="18">
+                                            <StackPanel>
+                                                <TextBlock x:Name="AppearanceTitleText" Text="Appearance and language" Style="{StaticResource SectionTitle}" />
+                                                <TextBlock x:Name="AppearanceDescriptionText" Text="Personalize Similaris and choose the language used by the Python core." Style="{StaticResource MutedText}" />
+                                            </StackPanel>
+                                            <Grid ColumnSpacing="24">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" MinWidth="0" />
+                                                    <ColumnDefinition Width="*" MinWidth="0" />
+                                                </Grid.ColumnDefinitions>
+                                                <ComboBox x:Name="LanguageCombo" Header="Language" SelectionChanged="LanguageCombo_SelectionChanged" MinWidth="220" HorizontalAlignment="Stretch">
+                                                    <ComboBoxItem Content="Português (Brasil)" Tag="pt-BR" />
+                                                    <ComboBoxItem Content="English (US)" Tag="en-US" />
+                                                    <ComboBoxItem Content="Español" Tag="es-ES" />
+                                                </ComboBox>
+                                                <ComboBox x:Name="ThemeCombo" Grid.Column="1" Header="Theme" SelectionChanged="ThemeCombo_SelectionChanged" MinWidth="180" HorizontalAlignment="Stretch">
+                                                    <ComboBoxItem x:Name="ThemeSystemItem" Content="System" Tag="system" />
+                                                    <ComboBoxItem x:Name="ThemeLightItem" Content="Light" Tag="light" />
+                                                    <ComboBoxItem x:Name="ThemeDarkItem" Content="Dark" Tag="dark" />
+                                                </ComboBox>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border x:Name="SupportSettingsPanel" Style="{StaticResource SectionCard}" Margin="0" Visibility="Collapsed">
+                                        <StackPanel Spacing="12">
+                                            <TextBlock x:Name="SupportTitleText" Text="Support Similaris development" Style="{StaticResource SectionTitle}" />
+                                            <TextBlock x:Name="SupportDescriptionText" Text="Similaris is free and independently developed. Contributions help keep the project updated." Style="{StaticResource MutedText}" />
+                                            <Button x:Name="DonateButton" Content="Make a donation" Click="DonateButton_Click" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border x:Name="LicensesSettingsPanel" Style="{StaticResource SectionCard}" Margin="0" Visibility="Collapsed">
+                                        <StackPanel Spacing="12">
+                                            <TextBlock x:Name="LicensesTitleText" Text="Licenses" Style="{StaticResource SectionTitle}" />
+                                            <TextBlock x:Name="LicensesDescriptionText" Text="Review the licenses bundled with Similaris and third-party components." Style="{StaticResource MutedText}" />
+                                            <TextBox x:Name="LicensesBox" MinHeight="420" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" FontFamily="Consolas" FontSize="12" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Grid x:Name="SidePanel" Grid.Column="1" RowSpacing="16" HorizontalAlignment="Stretch">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel Spacing="18">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource SystemFillColorCautionBackgroundBrush}">
+                                            <FontIcon x:Name="StatusIcon" Glyph="&#xE946;" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock x:Name="StatusTitleText" Text="Ready" FontWeight="SemiBold" />
+                                            <TextBlock x:Name="StatusMessageText" Text="Select a source folder to begin." Style="{StaticResource MutedText}" MaxLines="2" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="ProgressTitleText" Text="Progress" FontWeight="SemiBold" />
+                                        <TextBlock x:Name="ProgressPercentText" Grid.Column="1" Text="0%" Style="{StaticResource MutedText}" />
+                                    </Grid>
+                                    <ProgressBar x:Name="OperationProgress" Minimum="0" Maximum="100" Value="0" />
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="CurrentStepText" Text="Waiting to start." Style="{StaticResource MutedText}" VerticalAlignment="Center" />
+                                        <Button x:Name="ViewLogButton" Grid.Column="1" Click="ViewLogButton_Click" Style="{StaticResource QuietIconButton}">
+                                            <Button.Content>
+                                                <FontIcon Glyph="&#xE756;" FontSize="16" />
+                                            </Button.Content>
+                                        </Button>
+                                    </Grid>
+                                    <TextBox
+                                        x:Name="LogBox"
+                                        Visibility="Collapsed"
+                                        AcceptsReturn="True"
+                                        FontFamily="Consolas"
+                                        FontSize="12"
+                                        IsReadOnly="True"
+                                        TextWrapping="Wrap"
+                                        PlaceholderText="Core output will appear here." />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
+        </NavigationView>
+    </Grid>
+</Window>
