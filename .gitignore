@@ -1,6 +1,4 @@
-.build-tools-linux/
 .build-tools/
-.venv-linux/
 .venv-windows/
 build/
 dist/

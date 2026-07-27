@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-platform, multilingual graphical interface for Photo Organizer."""
+"""Windows graphical interface for Similaris."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ import math
 import os
 import queue
 import re
-import subprocess
 import sys
 import threading
 import time
@@ -67,7 +66,7 @@ TEXT = {
         "donate": "Make a donation", "open_link_error": "The donation page could not be opened.",
         "start_images": "Start analysis", "start_convert": "Start conversion", "start_enhance": "Start enhancement",
         "language_setting": "Language", "theme_setting": "Application theme",
-        "settings_description": "Personalize Similaris. System theme follows Windows or Linux automatically.",
+        "settings_description": "Personalize Similaris. System theme follows Windows automatically.",
         "images_tab": "Images", "videos_tab": "Video conversion", "duplicates": "Find and separate duplicate images",
         "images": "Convert images to JPG", "videos": "Convert videos to MP4",
         "rename": 'Rename images as "img (N)"',
@@ -114,7 +113,7 @@ TEXT = {
         "donate": "Fazer uma doação", "open_link_error": "Não foi possível abrir a página de doação.",
         "start_images": "Iniciar análise", "start_convert": "Iniciar conversão", "start_enhance": "Iniciar melhoria",
         "language_setting": "Idioma", "theme_setting": "Tema do aplicativo",
-        "settings_description": "Personalize o Similaris. O tema Sistema acompanha o Windows ou Linux automaticamente.",
+        "settings_description": "Personalize o Similaris. O tema Sistema acompanha o Windows automaticamente.",
         "images_tab": "Imagens", "videos_tab": "Conversão de vídeos", "duplicates": "Detectar e separar imagens repetidas",
         "images": "Converter imagens para JPG", "videos": "Converter vídeos para MP4",
         "rename": 'Renomear imagens como "img (N)"',
@@ -161,7 +160,7 @@ TEXT = {
         "donate": "Hacer una donación", "open_link_error": "No se pudo abrir la página de donación.",
         "start_images": "Iniciar análisis", "start_convert": "Iniciar conversión", "start_enhance": "Iniciar mejora",
         "language_setting": "Idioma", "theme_setting": "Tema de la aplicación",
-        "settings_description": "Personalice Similaris. El tema Sistema sigue Windows o Linux automáticamente.",
+        "settings_description": "Personalice Similaris. El tema Sistema sigue Windows automáticamente.",
         "images_tab": "Imágenes", "videos_tab": "Conversión de vídeos", "duplicates": "Detectar y separar imágenes duplicadas",
         "images": "Convertir imágenes a JPG", "videos": "Convertir vídeos a MP4",
         "rename": 'Renombrar imágenes como "img (N)"',
@@ -366,20 +365,6 @@ def system_theme() -> str:
         except (OSError, ImportError):
             return "light"
 
-    gtk_theme = os.environ.get("GTK_THEME", "").lower()
-    if "dark" in gtk_theme:
-        return "dark"
-    if sys.platform.startswith("linux"):
-        for setting in ("color-scheme", "gtk-theme"):
-            try:
-                result = subprocess.run(
-                    ["gsettings", "get", "org.gnome.desktop.interface", setting],
-                    capture_output=True, text=True, timeout=0.5, check=False,
-                )
-                if result.returncode == 0 and "dark" in result.stdout.lower():
-                    return "dark"
-            except (OSError, subprocess.SubprocessError):
-                break
     return "dark" if sys.platform == "darwin" and os.environ.get("AppleInterfaceStyle") == "Dark" else "light"
 
 
@@ -2468,10 +2453,8 @@ class Application(tk.Tk):
         try:
             if sys.platform == "win32":
                 os.startfile(destination)  # type: ignore[attr-defined]
-            elif sys.platform == "darwin":
-                subprocess.Popen(["open", str(destination)])
             else:
-                subprocess.Popen(["xdg-open", str(destination)])
+                webbrowser.open(destination.as_uri())
         except OSError:
             messagebox.showerror(self.tr("product"), self.tr("open_destination_error"))
 

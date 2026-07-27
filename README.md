@@ -4,7 +4,7 @@
 
 # Similaris
 
-Portable Windows x64 and Linux x64 executables are published on the
+Portable Windows x64 executables are published on the
 [GitHub Releases page](https://github.com/altairbarbosa/similaris/releases).
 
 [English](#english) | [Português (Brasil)](#português-brasil) | [Español](#español)
@@ -34,7 +34,7 @@ avoid grouping consecutive photos with different poses.
 - Conservative, balanced, and sensitive duplicate-detection profiles.
 - Fast candidate filtering followed by bidirectional ORB matching, MAGSAC alignment,
   transform validation, and structural comparison.
-- Portable single-file builds for Windows and Linux/WSL.
+- Portable single-file builds for Windows.
 
 Supported images: JPG, JPEG, PNG, WebP, BMP, and TIFF. Similaris analyzes only
 files directly inside the selected folder and does not recursively inspect the
@@ -149,29 +149,6 @@ never generated or published by the GitHub workflows. The Store signs the
 package after certification. Increase the four-part version for every
 submission; do not reuse a version already submitted.
 
-## Build for Linux/WSL
-
-On Ubuntu or WSL, install the build requirements once:
-
-```bash
-sudo apt update
-sudo apt install -y python3-tk python3-venv
-```
-
-Build and run:
-
-```bash
-./build_linux.sh
-./dist/Similaris
-```
-
-The script downloads and verifies a static FFmpeg build and packages Python,
-Tkinter, Pillow, ImageHash, NumPy, OpenCV, and FFmpeg into one executable. On Windows 11
-with WSL, the graphical window is displayed through WSLg.
-
-Linux builds target the architecture and glibc compatibility of the build
-environment. Use `build_windows.bat` to create the native Windows executable.
-
 The video tab is conversion-only. Similaris currently does not detect duplicate
 videos; it creates MP4/H.264/AAC copies in `converted` and preserves originals.
 
@@ -212,7 +189,7 @@ não agrupar fotos consecutivas com poses diferentes.
 - Perfis de detecção conservador, equilibrado e sensível.
 - Filtragem rápida de candidatos seguida de correspondência ORB bidirecional,
   alinhamento MAGSAC, validação da transformação e comparação estrutural.
-- Builds portáteis de arquivo único para Windows e Linux/WSL.
+- Builds portáteis de arquivo único para Windows.
 
 São compatíveis imagens JPG, JPEG, PNG, WebP, BMP e TIFF. O Similaris analisa
 somente os arquivos diretamente dentro da pasta selecionada e não examina
@@ -312,20 +289,6 @@ gerados somente no computador Windows local e nunca são construídos ou
 publicados pelos workflows do GitHub. A Store assina o pacote após a
 certificação. A versão de quatro partes deve ser aumentada a cada envio.
 
-### Construção para Linux/WSL
-
-```bash
-sudo apt update
-sudo apt install -y python3-tk python3-venv
-./build_linux.sh
-./dist/Similaris
-```
-
-O script baixa e valida um FFmpeg estático e incorpora Python, Tkinter, Pillow,
-ImageHash, NumPy, OpenCV e FFmpeg em um único executável. No Windows 11 com WSL, a
-janela gráfica é exibida pelo WSLg. O build depende da arquitetura e da
-compatibilidade da glibc do ambiente usado na construção.
-
 A aba de vídeos serve somente para conversão. Atualmente, o Similaris não
 detecta vídeos duplicados; ele cria cópias MP4/H.264/AAC em `converted` e
 preserva os originais.
@@ -365,7 +328,7 @@ para no agrupar fotos consecutivas con poses diferentes.
 - Perfiles de detección conservador, equilibrado y sensible.
 - Filtrado rápido de candidatos seguido de correspondencia ORB bidireccional,
   alineación MAGSAC, validación de la transformación y comparación estructural.
-- Builds portátiles de un solo archivo para Windows y Linux/WSL.
+- Builds portátiles de un solo archivo para Windows.
 
 Son compatibles las imágenes JPG, JPEG, PNG, WebP, BMP y TIFF. Similaris
 analiza solo los archivos que están directamente en la carpeta seleccionada y
@@ -466,20 +429,6 @@ Los paquetes de la Store se generan únicamente en el equipo Windows local y
 nunca se compilan ni se publican mediante los workflows de GitHub. La Store
 firma el paquete después de la certificación. La versión de cuatro partes debe
 aumentar con cada envío.
-
-### Construcción para Linux/WSL
-
-```bash
-sudo apt update
-sudo apt install -y python3-tk python3-venv
-./build_linux.sh
-./dist/Similaris
-```
-
-El script descarga y verifica un FFmpeg estático e incorpora Python, Tkinter,
-Pillow, ImageHash, NumPy, OpenCV y FFmpeg en un solo ejecutable. En Windows 11 con WSL,
-la ventana gráfica se muestra mediante WSLg. El build depende de la arquitectura
-y de la compatibilidad de glibc del entorno utilizado para construirlo.
 
 La pestaña de vídeos sirve únicamente para conversión. Similaris no detecta
 actualmente vídeos duplicados; crea copias MP4/H.264/AAC en `converted` y
