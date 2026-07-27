@@ -55,7 +55,7 @@ $arguments = @(
     $winuiProject,
     '--configuration', $Configuration,
     '--runtime', 'win-x64',
-    '--self-contained', 'false'
+    '--self-contained', 'true'
 )
 
 if (-not [string]::IsNullOrWhiteSpace($Version)) {
