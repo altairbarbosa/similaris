@@ -4,7 +4,7 @@ param(
     [string]$Version = '0.1.0.0',
 
     [Parameter(Mandatory = $false)]
-    [string]$ExecutablePath = 'dist\Similaris.exe',
+    [string]$ExecutablePath = 'dist\windows\Similaris\Similaris.exe',
 
     [Parameter(Mandatory = $false)]
     [string]$OutputDirectory = 'dist',
@@ -90,8 +90,17 @@ New-Item $staging -ItemType Directory -Force | Out-Null
 New-Item (Join-Path $staging 'Assets') -ItemType Directory -Force | Out-Null
 New-Item $output -ItemType Directory -Force | Out-Null
 
-Copy-Item $executable (Join-Path $staging 'Similaris.exe')
+$applicationDirectory = Split-Path $executable -Parent
+Copy-Item (Join-Path $applicationDirectory '*') $staging -Recurse -Force
 Copy-Item (Join-Path $projectDirectory 'packaging\assets\*.png') (Join-Path $staging 'Assets')
+# Windows otherwise places the transparent icon on a generic gray/accent tile
+# in Start and the taskbar. The unplated qualifier preserves the artwork's own
+# transparent silhouette.
+Copy-Item (
+    Join-Path $projectDirectory 'packaging\assets\Square44x44Logo.png'
+) (
+    Join-Path $staging 'Assets\Square44x44Logo.targetsize-44_altform-unplated.png'
+)
 
 $manifest = (Get-Content $manifestTemplate -Raw).
     Replace('@@VERSION@@', $Version).

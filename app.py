@@ -206,6 +206,10 @@ TEXT["en-US"].update({
     "duplicates_description": "Identify identical or visually similar files.",
     "rename_title": "Rename files",
     "rename_description": "Standardize the names of processed files.",
+    "rename_prefix": "File name",
+    "rename_prefix_hint": "The sequence number and original extension are added automatically.",
+    "invalid_prefix_title": "Invalid file name",
+    "invalid_prefix": "Enter a valid name without any of these characters: < > : \" / \\ | ? *",
     "sensitivity_title": "Detection sensitivity",
     "simulation_title": "Simulate changes",
     "simulation_description": "Preview the result without moving or renaming files.",
@@ -213,12 +217,16 @@ TEXT["en-US"].update({
     "apply_description": "Perform the selected changes on the files.",
     "apply_warning": "Files may be moved or renamed. Originals used for conversion are preserved.",
     "output_format": "Output format", "quality": "Quality",
-    "quality_help": "Higher quality creates larger files.",
+    "quality_help": "Used for JPG and WebP. PNG is always lossless.",
+    "video_quality_high": "High quality",
+    "video_quality_balanced": "Balanced (recommended)",
+    "video_quality_compact": "Smaller file",
+    "video_quality_help": "Choose the balance between image quality and file size.",
     "keep_originals": "Original files are always preserved.",
-    "image_conversion_title": "Convert images to JPG",
-    "image_conversion_description": "Create high-quality JPG copies without changing resolution.",
-    "video_conversion_title": "Convert videos to MP4",
-    "video_conversion_description": "Create MP4 (H.264/AAC) copies while preserving originals.",
+    "image_conversion_title": "Convert images",
+    "image_conversion_description": "Create JPG, PNG, or WebP copies without changing resolution.",
+    "video_conversion_title": "Convert videos",
+    "video_conversion_description": "Create MP4, AVI, or MKV copies while preserving originals.",
     "local_processing_title": "Local processing",
     "local_processing_message": "Real-ESRGAN processes images on this computer. Files are not uploaded to the internet.",
     "hardware_recommendation": "A Vulkan-compatible GPU is recommended for faster processing.",
@@ -249,6 +257,10 @@ TEXT["pt-BR"].update({
     "duplicates_description": "Identifique arquivos iguais ou visualmente semelhantes.",
     "rename_title": "Renomear arquivos",
     "rename_description": "Padronize os nomes dos arquivos processados.",
+    "rename_prefix": "Nome dos arquivos",
+    "rename_prefix_hint": "A numeração e a extensão original são adicionadas automaticamente.",
+    "invalid_prefix_title": "Nome inválido",
+    "invalid_prefix": "Digite um nome válido, sem estes caracteres: < > : \" / \\ | ? *",
     "sensitivity_title": "Sensibilidade da detecção",
     "simulation_title": "Simular alterações",
     "simulation_description": "Exibe o resultado sem mover ou renomear arquivos.",
@@ -256,12 +268,16 @@ TEXT["pt-BR"].update({
     "apply_description": "Executa as alterações selecionadas nos arquivos.",
     "apply_warning": "Arquivos poderão ser movidos ou renomeados. Originais usados em conversões são preservados.",
     "output_format": "Formato de saída", "quality": "Qualidade",
-    "quality_help": "Qualidade maior gera arquivos maiores.",
+    "quality_help": "Usada em JPG e WebP. PNG é sempre convertido sem perdas.",
+    "video_quality_high": "Alta qualidade",
+    "video_quality_balanced": "Equilibrada (recomendada)",
+    "video_quality_compact": "Arquivo menor",
+    "video_quality_help": "Escolha o equilíbrio entre qualidade de imagem e tamanho do arquivo.",
     "keep_originals": "Os arquivos originais são sempre preservados.",
-    "image_conversion_title": "Converter imagens para JPG",
-    "image_conversion_description": "Crie cópias JPG de alta qualidade sem alterar a resolução.",
-    "video_conversion_title": "Converter vídeos para MP4",
-    "video_conversion_description": "Crie cópias MP4 (H.264/AAC) preservando os originais.",
+    "image_conversion_title": "Converter imagens",
+    "image_conversion_description": "Crie cópias em JPG, PNG ou WebP sem alterar a resolução.",
+    "video_conversion_title": "Converter vídeos",
+    "video_conversion_description": "Crie cópias em MP4, AVI ou MKV preservando os originais.",
     "local_processing_title": "Processamento local",
     "local_processing_message": "O Real-ESRGAN processa suas imagens neste computador. Os arquivos não são enviados para a internet.",
     "hardware_recommendation": "Recomenda-se uma GPU compatível com Vulkan para maior velocidade.",
@@ -292,6 +308,10 @@ TEXT["es-ES"].update({
     "duplicates_description": "Identifica archivos idénticos o visualmente similares.",
     "rename_title": "Renombrar archivos",
     "rename_description": "Estandariza los nombres de los archivos procesados.",
+    "rename_prefix": "Nombre de los archivos",
+    "rename_prefix_hint": "La numeración y la extensión original se añaden automáticamente.",
+    "invalid_prefix_title": "Nombre no válido",
+    "invalid_prefix": "Escribe un nombre válido, sin estos caracteres: < > : \" / \\ | ? *",
     "sensitivity_title": "Sensibilidad de detección",
     "simulation_title": "Simular cambios",
     "simulation_description": "Muestra el resultado sin mover ni renombrar archivos.",
@@ -299,12 +319,16 @@ TEXT["es-ES"].update({
     "apply_description": "Ejecuta los cambios seleccionados en los archivos.",
     "apply_warning": "Los archivos pueden moverse o renombrarse. Los originales usados en conversiones se conservan.",
     "output_format": "Formato de salida", "quality": "Calidad",
-    "quality_help": "Una calidad mayor genera archivos más grandes.",
+    "quality_help": "Se usa en JPG y WebP. PNG siempre se convierte sin pérdidas.",
+    "video_quality_high": "Alta calidad",
+    "video_quality_balanced": "Equilibrada (recomendada)",
+    "video_quality_compact": "Archivo más pequeño",
+    "video_quality_help": "Elige el equilibrio entre calidad de imagen y tamaño del archivo.",
     "keep_originals": "Los archivos originales siempre se conservan.",
-    "image_conversion_title": "Convertir imágenes a JPG",
-    "image_conversion_description": "Crea copias JPG de alta calidad sin cambiar la resolución.",
-    "video_conversion_title": "Convertir vídeos a MP4",
-    "video_conversion_description": "Crea copias MP4 (H.264/AAC) conservando los originales.",
+    "image_conversion_title": "Convertir imágenes",
+    "image_conversion_description": "Crea copias en JPG, PNG o WebP sin cambiar la resolución.",
+    "video_conversion_title": "Convertir vídeos",
+    "video_conversion_description": "Crea copias en MP4, AVI o MKV conservando los originales.",
     "local_processing_title": "Procesamiento local",
     "local_processing_message": "Real-ESRGAN procesa tus imágenes en este equipo. Los archivos no se envían a internet.",
     "hardware_recommendation": "Se recomienda una GPU compatible con Vulkan para un procesamiento más rápido.",
@@ -430,6 +454,541 @@ class Tooltip:
             self.window = None
 
 
+class ModernChoice(ttk.Frame):
+    """Theme-aware radio-card control rendered consistently on every platform."""
+
+    def __init__(
+        self, master: tk.Misc, *, variable: tk.Variable, value: object,
+        text: str = "", command: Callable[[], None] | None = None,
+        surface: str = "surface_alt",
+    ) -> None:
+        self.variable = variable
+        self.value = value
+        self.command = command
+        self.surface = surface
+        self._text = text
+        self._state = "normal"
+        super().__init__(master, takefocus=True, cursor="hand2")
+        self.indicator = tk.Canvas(
+            self, width=18, height=18, highlightthickness=0, borderwidth=0,
+        )
+        self.indicator.pack(side="left", padx=(10, 8), pady=9)
+        self.label = tk.Label(
+            self, text=text, anchor="w", font=("Segoe UI Semibold", 10),
+            borderwidth=0,
+        )
+        self.label.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=9)
+        for widget in (self, self.indicator, self.label):
+            widget.bind("<Button-1>", self._select, add="+")
+        self.bind("<space>", self._select, add="+")
+        self.bind("<Return>", self._select, add="+")
+        self.bind("<FocusIn>", lambda _event: self.refresh(), add="+")
+        self.bind("<FocusOut>", lambda _event: self.refresh(), add="+")
+        self.variable.trace_add("write", lambda *_args: self.refresh())
+        self.winfo_toplevel().custom_controls.append(self)
+        self.refresh()
+
+    def _select(self, _event: object = None) -> str:
+        if self._state != "disabled":
+            self.variable.set(self.value)
+            if self.command:
+                self.command()
+            self.focus_set()
+        return "break"
+
+    def configure(self, cnf: object = None, **kwargs: object) -> object:
+        if isinstance(cnf, dict):
+            kwargs.update(cnf)
+        if "text" in kwargs:
+            self._text = str(kwargs.pop("text"))
+            self.label.configure(text=self._text)
+        if "state" in kwargs:
+            self._state = str(kwargs.pop("state"))
+        result = super().configure(**kwargs) if kwargs else None
+        self.refresh()
+        return result
+
+    config = configure
+
+    def refresh(self) -> None:
+        app = self.winfo_toplevel()
+        colors = app.colors
+        selected = self.variable.get() == self.value
+        disabled = self._state == "disabled"
+        background = (
+            colors["selection"] if selected else colors.get(self.surface, colors["surface_alt"])
+        )
+        foreground = colors["muted"] if disabled else colors["accent"] if selected else colors["text"]
+        focused_widget = self.tk.call("focus")
+        has_focus = bool(focused_widget) and str(focused_widget) == str(self)
+        surface_name = "Elevated" if self.surface == "elevated" else "Surface"
+        style_name = (
+            "ChoiceSelected.TFrame" if selected
+            else "ChoiceFocused.TFrame" if has_focus
+            else f"Choice{surface_name}.TFrame"
+        )
+        self.configure_raw(style=style_name)
+        self.label.configure(background=background, foreground=foreground)
+        self.indicator.configure(background=background)
+        self.indicator.delete("all")
+        self.indicator.create_oval(2, 2, 16, 16, outline=foreground, width=2)
+        if selected:
+            self.indicator.create_oval(6, 6, 12, 12, fill=colors["accent"], outline="")
+        cursor = "arrow" if disabled else "hand2"
+        self.configure_raw(cursor=cursor)
+        for widget in (self.indicator, self.label):
+            widget.configure(cursor=cursor)
+
+    def configure_raw(self, **kwargs: object) -> None:
+        ttk.Frame.configure(self, **kwargs)
+
+
+class ModernToggle(tk.Frame):
+    """Compact switch with a text label and a platform-independent appearance."""
+
+    def __init__(
+        self, master: tk.Misc, *, variable: tk.BooleanVar, text: str = "",
+        command: Callable[[], None] | None = None, surface: str = "elevated",
+    ) -> None:
+        self.variable = variable
+        self.command = command
+        self.surface = surface
+        self._state = "normal"
+        super().__init__(master, takefocus=True, cursor="hand2", borderwidth=0)
+        self.switch = tk.Canvas(
+            self, width=38, height=22, highlightthickness=0, borderwidth=0,
+        )
+        self.switch.pack(side="left", padx=(0, 10), pady=3)
+        self.label = tk.Label(
+            self, text=text, anchor="w", font=("Segoe UI Semibold", 10), borderwidth=0,
+        )
+        self.label.pack(side="left", fill="x", expand=True, pady=3)
+        for widget in (self, self.switch, self.label):
+            widget.bind("<Button-1>", self._toggle, add="+")
+        self.bind("<space>", self._toggle, add="+")
+        self.bind("<Return>", self._toggle, add="+")
+        self.variable.trace_add("write", lambda *_args: self.refresh())
+        self.winfo_toplevel().custom_controls.append(self)
+        self.refresh()
+
+    def _toggle(self, _event: object = None) -> str:
+        if self._state != "disabled":
+            self.variable.set(not self.variable.get())
+            if self.command:
+                self.command()
+            self.focus_set()
+        return "break"
+
+    def configure(self, cnf: object = None, **kwargs: object) -> object:
+        if isinstance(cnf, dict):
+            kwargs.update(cnf)
+        if "text" in kwargs:
+            self.label.configure(text=str(kwargs.pop("text")))
+        if "state" in kwargs:
+            self._state = str(kwargs.pop("state"))
+        result = super().configure(**kwargs) if kwargs else None
+        self.refresh()
+        return result
+
+    config = configure
+
+    def refresh(self) -> None:
+        colors = self.winfo_toplevel().colors
+        enabled = self.variable.get()
+        disabled = self._state == "disabled"
+        background = colors.get(self.surface, colors["surface_alt"])
+        foreground = colors["muted"] if disabled else colors["text"]
+        track = colors["border"] if disabled or not enabled else colors["accent"]
+        self.configure_raw(background=background)
+        self.label.configure(background=background, foreground=foreground)
+        self.switch.configure(background=background)
+        self.switch.delete("all")
+        self.switch.create_oval(2, 3, 18, 19, fill=track, outline=track)
+        self.switch.create_oval(20, 3, 36, 19, fill=track, outline=track)
+        self.switch.create_rectangle(10, 3, 28, 19, fill=track, outline=track)
+        knob_x = 27 if enabled else 11
+        self.switch.create_oval(
+            knob_x - 7, 4, knob_x + 7, 18,
+            fill="#ffffff", outline="#ffffff",
+        )
+        cursor = "arrow" if disabled else "hand2"
+        self.configure_raw(cursor=cursor)
+        for widget in (self.switch, self.label):
+            widget.configure(cursor=cursor)
+
+    def configure_raw(self, **kwargs: object) -> None:
+        tk.Frame.configure(self, **kwargs)
+
+
+class ModernSlider(tk.Canvas):
+    """Accessible value slider with a modern track, fill, and thumb."""
+
+    def __init__(
+        self, master: tk.Misc, *, from_: int, to: int, variable: tk.IntVar,
+        command: Callable[[str], None] | None = None,
+    ) -> None:
+        self.minimum = from_
+        self.maximum = to
+        self.variable = variable
+        self.command = command
+        super().__init__(
+            master, height=30, width=240, highlightthickness=0, borderwidth=0,
+            takefocus=True, cursor="hand2",
+        )
+        self.bind("<Configure>", lambda _event: self.refresh())
+        self.bind("<Button-1>", self._set_from_pointer)
+        self.bind("<B1-Motion>", self._set_from_pointer)
+        self.bind("<Left>", lambda _event: self._step(-1))
+        self.bind("<Right>", lambda _event: self._step(1))
+        self.bind("<Home>", lambda _event: self._set_value(self.minimum))
+        self.bind("<End>", lambda _event: self._set_value(self.maximum))
+        self.variable.trace_add("write", lambda *_args: self.refresh())
+        self.winfo_toplevel().custom_controls.append(self)
+        self.after_idle(self.refresh)
+
+    def _set_from_pointer(self, event: tk.Event) -> str:
+        width = max(self.winfo_width() - 24, 1)
+        ratio = min(max((event.x - 12) / width, 0), 1)
+        self._set_value(round(self.minimum + ratio * (self.maximum - self.minimum)))
+        self.focus_set()
+        return "break"
+
+    def _step(self, amount: int) -> str:
+        self._set_value(self.variable.get() + amount)
+        return "break"
+
+    def _set_value(self, value: int) -> None:
+        value = min(max(int(value), self.minimum), self.maximum)
+        self.variable.set(value)
+        if self.command:
+            self.command(str(value))
+
+    def refresh(self) -> None:
+        colors = self.winfo_toplevel().colors
+        self.configure(background=colors["surface"])
+        self.delete("all")
+        left, right, center = 12, max(self.winfo_width() - 12, 13), 15
+        ratio = (self.variable.get() - self.minimum) / max(self.maximum - self.minimum, 1)
+        thumb = left + (right - left) * ratio
+        self.create_line(left, center, right, center, fill=colors["border"], width=6)
+        self.create_line(left, center, thumb, center, fill=colors["accent"], width=6)
+        self.create_oval(
+            thumb - 8, center - 8, thumb + 8, center + 8,
+            fill=colors["surface"], outline=colors["accent"], width=3,
+        )
+
+
+class ModernSelect(ttk.Frame):
+    """Custom dropdown that avoids platform-native combobox styling and popdowns."""
+
+    def __init__(
+        self, master: tk.Misc, *, variable: tk.StringVar, values: list[str] | tuple[str, ...],
+        command: Callable[[object], None] | None = None, width: int = 24,
+    ) -> None:
+        self.variable = variable
+        self.values = list(values)
+        self.command = command
+        self._state = "readonly"
+        self.popup: tk.Toplevel | None = None
+        super().__init__(master, takefocus=True, cursor="hand2")
+        self.label = tk.Label(
+            self, textvariable=variable, anchor="w", width=width,
+            font=("Segoe UI", 10), borderwidth=0,
+        )
+        self.label.pack(side="left", fill="x", expand=True, padx=(12, 6), pady=9)
+        self.arrow = tk.Canvas(
+            self, width=22, height=20, highlightthickness=0, borderwidth=0,
+        )
+        self.arrow.pack(side="right", padx=(0, 7))
+        for widget in (self, self.label, self.arrow):
+            widget.bind("<Button-1>", self._toggle_popup, add="+")
+        self.bind("<space>", self._toggle_popup, add="+")
+        self.bind("<Return>", self._toggle_popup, add="+")
+        self.bind("<Down>", lambda _event: self._move(1), add="+")
+        self.bind("<Up>", lambda _event: self._move(-1), add="+")
+        self.bind("<Escape>", lambda _event: self._close_popup(), add="+")
+        self.variable.trace_add("write", lambda *_args: self.refresh())
+        self.winfo_toplevel().custom_controls.append(self)
+        self.refresh()
+
+    def current(self, index: int | None = None) -> int:
+        if index is None:
+            try:
+                return self.values.index(self.variable.get())
+            except ValueError:
+                return -1
+        if not 0 <= index < len(self.values):
+            raise tk.TclError(f"select index {index} out of range")
+        self.variable.set(self.values[index])
+        return index
+
+    def configure(self, cnf: object = None, **kwargs: object) -> object:
+        if isinstance(cnf, dict):
+            kwargs.update(cnf)
+        if "values" in kwargs:
+            self.values = list(kwargs.pop("values"))
+        if "state" in kwargs:
+            self._state = str(kwargs.pop("state"))
+        result = super().configure(**kwargs) if kwargs else None
+        self.refresh()
+        return result
+
+    config = configure
+
+    def _toggle_popup(self, _event: object = None) -> str:
+        if self._state == "disabled":
+            return "break"
+        if self.popup is not None:
+            self._close_popup()
+        else:
+            self._open_popup()
+        self.focus_set()
+        return "break"
+
+    def _open_popup(self) -> None:
+        if not self.values:
+            return
+        self.update_idletasks()
+        colors = self.winfo_toplevel().colors
+        self.popup = tk.Toplevel(self)
+        self.popup.overrideredirect(True)
+        self.popup.attributes("-topmost", True)
+        self.popup.configure(background=colors["border"])
+        width = max(self.winfo_width(), 180)
+        x, y = self.winfo_rootx(), self.winfo_rooty() + self.winfo_height() + 4
+        self.popup.geometry(f"{width}x{len(self.values) * 40}+{x}+{y}")
+        selected = self.variable.get()
+        for row, value in enumerate(self.values):
+            active = value == selected
+            option = tk.Label(
+                self.popup, text=value, anchor="w",
+                background=colors["selection"] if active else colors["surface_alt"],
+                foreground=colors["accent"] if active else colors["text"],
+                font=("Segoe UI Semibold" if active else "Segoe UI", 10),
+                padx=12, pady=10, borderwidth=0, cursor="hand2",
+            )
+            option.pack(fill="x", padx=1, pady=(1 if row == 0 else 0, 0))
+            option.bind("<Button-1>", lambda _event, choice=value: self._choose(choice))
+            option.bind(
+                "<Enter>",
+                lambda _event, item=option: item.configure(background=colors["control_hover"]),
+            )
+            option.bind(
+                "<Leave>",
+                lambda _event, item=option, is_active=active: item.configure(
+                    background=colors["selection"] if is_active else colors["surface_alt"]
+                ),
+            )
+        self.popup.bind("<Escape>", lambda _event: self._close_popup())
+        self.popup.lift()
+        self.popup.after_idle(self._activate_popup)
+        self.refresh()
+
+    def _activate_popup(self) -> None:
+        """Acquire the popup grab only after X11/Wayland has mapped the window."""
+        if self.popup is None or not self.popup.winfo_exists():
+            return
+        self.popup.update_idletasks()
+        if not self.popup.winfo_viewable():
+            self.popup.after(15, self._activate_popup)
+            return
+        with contextlib.suppress(tk.TclError):
+            self.popup.grab_set()
+
+    def _close_popup(self) -> str:
+        if self.popup is not None:
+            with contextlib.suppress(tk.TclError):
+                self.popup.grab_release()
+                self.popup.destroy()
+            self.popup = None
+        self.refresh()
+        return "break"
+
+    def _choose(self, value: str) -> None:
+        self.variable.set(value)
+        self._close_popup()
+        if self.command:
+            self.command(None)
+
+    def _move(self, amount: int) -> str:
+        if not self.values:
+            return "break"
+        index = self.current()
+        self.current((index + amount) % len(self.values))
+        if self.command:
+            self.command(None)
+        return "break"
+
+    def refresh(self) -> None:
+        colors = self.winfo_toplevel().colors
+        disabled = self._state == "disabled"
+        background = colors["surface_alt"]
+        foreground = colors["muted"] if disabled else colors["text"]
+        ttk.Frame.configure(
+            self, style="SelectFocused.TFrame" if self.popup is not None else "Select.TFrame",
+            cursor="arrow" if disabled else "hand2",
+        )
+        self.label.configure(background=background, foreground=foreground)
+        self.arrow.configure(background=background)
+        self.arrow.delete("all")
+        self.arrow.create_line(
+            6, 8, 11, 13, 16, 8, fill=foreground, width=2,
+            capstyle="round", joinstyle="round",
+        )
+
+
+class FluentScrollbar(tk.Canvas):
+    """Thin overlay-like scrollbar matching the Windows 11 visual language."""
+
+    def __init__(
+        self, master: tk.Misc, *, command: Callable[..., object],
+        orient: str = "vertical",
+    ) -> None:
+        self.command = command
+        self.orient = orient
+        self.first = 0.0
+        self.last = 1.0
+        self.drag_offset = 0
+        super().__init__(
+            master, width=12, highlightthickness=0, borderwidth=0,
+            cursor="arrow",
+        )
+        self.bind("<Configure>", lambda _event: self._draw())
+        self.bind("<Button-1>", self._press)
+        self.bind("<B1-Motion>", self._drag)
+        self.bind("<Enter>", lambda _event: self._draw(active=True))
+        self.bind("<Leave>", lambda _event: self._draw())
+        self.refresh_theme()
+
+    def refresh_theme(self) -> None:
+        colors = self.winfo_toplevel().colors
+        self.configure(background=colors["window"])
+        self._draw()
+
+    def set(self, first: str | float, last: str | float) -> None:
+        self.first, self.last = float(first), float(last)
+        self._draw()
+
+    def _geometry(self) -> tuple[float, float, float]:
+        length = max(self.winfo_height(), 1)
+        thumb = max(28.0, length * (self.last - self.first))
+        travel = max(length - thumb, 1.0)
+        start = min(travel, self.first * length)
+        return start, start + thumb, travel
+
+    def _draw(self, active: bool = False) -> None:
+        if not self.winfo_exists():
+            return
+        colors = self.winfo_toplevel().colors
+        self.delete("all")
+        if self.last - self.first >= 0.999:
+            return
+        start, end, _travel = self._geometry()
+        color = colors["muted"] if active else colors["border"]
+        self.create_round_rect(4, start + 2, 8, end - 2, 2, fill=color)
+
+    def create_round_rect(
+        self, x1: float, y1: float, x2: float, y2: float, radius: float,
+        **kwargs: object,
+    ) -> None:
+        self.create_rectangle(x1, y1 + radius, x2, y2 - radius, width=0, **kwargs)
+        self.create_oval(x1, y1, x2, y1 + radius * 2, width=0, **kwargs)
+        self.create_oval(x1, y2 - radius * 2, x2, y2, width=0, **kwargs)
+
+    def _press(self, event: tk.Event) -> str:
+        start, end, _travel = self._geometry()
+        if start <= event.y <= end:
+            self.drag_offset = event.y - start
+        else:
+            self.drag_offset = (end - start) / 2
+            self._move_to(event.y)
+        return "break"
+
+    def _drag(self, event: tk.Event) -> str:
+        self._move_to(event.y)
+        return "break"
+
+    def _move_to(self, pointer: float) -> None:
+        _start, _end, travel = self._geometry()
+        fraction = min(max((pointer - self.drag_offset) / travel, 0.0), 1.0)
+        self.command("moveto", fraction)
+
+
+class ScrollablePage(ttk.Frame):
+    """A page that scrolls only when its content exceeds the viewport."""
+
+    def __init__(self, master: tk.Misc, *, padding: tuple[int, ...]) -> None:
+        super().__init__(master)
+        self.canvas = tk.Canvas(
+            self, highlightthickness=0, borderwidth=0,
+            background=self.winfo_toplevel().colors["window"],
+        )
+        self.scrollbar = FluentScrollbar(
+            self, orient="vertical", command=self.canvas.yview,
+        )
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.content = ttk.Frame(self.canvas, padding=padding)
+        self.window = self.canvas.create_window(
+            (0, 0), window=self.content, anchor="nw",
+        )
+        self.content.bind("<Configure>", self._content_resized, add="+")
+        self.canvas.bind("<Configure>", self._viewport_resized, add="+")
+        self.canvas.bind("<Enter>", self._enable_wheel, add="+")
+        self.canvas.bind("<Leave>", self._disable_wheel, add="+")
+
+    def refresh_theme(self) -> None:
+        self.canvas.configure(background=self.winfo_toplevel().colors["window"])
+        self.scrollbar.refresh_theme()
+
+    def _content_resized(self, _event: object = None) -> None:
+        self.canvas.itemconfigure(
+            self.window,
+            height=max(self.canvas.winfo_height(), self.content.winfo_reqheight()),
+        )
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self._update_scrollbar()
+
+    def _viewport_resized(self, event: tk.Event) -> None:
+        self.canvas.itemconfigure(
+            self.window, width=event.width,
+            height=max(event.height, self.content.winfo_reqheight()),
+        )
+        self._update_scrollbar()
+
+    def _update_scrollbar(self) -> None:
+        overflow = self.content.winfo_reqheight() > self.canvas.winfo_height()
+        if overflow:
+            self.scrollbar.grid(row=0, column=1, sticky="ns")
+        else:
+            self.scrollbar.grid_remove()
+            self.canvas.yview_moveto(0)
+
+    def _enable_wheel(self, _event: object = None) -> None:
+        self.canvas.bind_all("<MouseWheel>", self._mousewheel, add="+")
+        self.canvas.bind_all("<Button-4>", self._mousewheel, add="+")
+        self.canvas.bind_all("<Button-5>", self._mousewheel, add="+")
+
+    def _disable_wheel(self, _event: object = None) -> None:
+        self.canvas.unbind_all("<MouseWheel>")
+        self.canvas.unbind_all("<Button-4>")
+        self.canvas.unbind_all("<Button-5>")
+
+    def _mousewheel(self, event: tk.Event) -> str:
+        if self.content.winfo_reqheight() <= self.canvas.winfo_height():
+            return "break"
+        if getattr(event, "num", None) == 4:
+            units = -3
+        elif getattr(event, "num", None) == 5:
+            units = 3
+        else:
+            units = -max(-3, min(3, int(event.delta / 120)))
+        self.canvas.yview_scroll(units, "units")
+        return "break"
+
+
 class Application(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
@@ -438,6 +997,11 @@ class Application(tk.Tk):
         self.theme_mode = "system"
         self.effective_theme = system_theme()
         self.colors = THEME_COLORS[self.effective_theme]
+        self._style_images: list[tk.PhotoImage] = []
+        self._style_generation = 0
+        self.custom_controls: list[
+            ModernChoice | ModernToggle | ModernSlider | ModernSelect
+        ] = []
         self.configure(background=self.colors["window"])
         self._configure_style()
         self.events: queue.Queue[tuple[str, object]] = queue.Queue()
@@ -468,8 +1032,11 @@ class Application(tk.Tk):
         self.convert_videos = tk.BooleanVar(value=False)
         self.enhance_images = tk.BooleanVar(value=False)
         self.rename_images = tk.BooleanVar(value=False)
+        self.rename_prefix = tk.StringVar(value="img")
         self.jpg_quality = tk.IntVar(value=92)
-        self.video_quality = tk.IntVar(value=20)
+        self.video_quality = tk.IntVar(value=23)
+        self.image_format = tk.StringVar(value="jpg")
+        self.video_format = tk.StringVar(value="mp4")
         self.sensitivity = tk.StringVar(value="balanced")
         self.enhancement_scale = tk.IntVar(value=2)
         self.enhancement_model = tk.StringVar(value="photo")
@@ -482,6 +1049,8 @@ class Application(tk.Tk):
         self._build_ui()
         self._translate()
         self.after_idle(self._update_native_titlebar)
+        self.after(350, self._update_native_titlebar)
+        self.bind("<Map>", lambda _event: self.after_idle(self._update_native_titlebar), add="+")
         self.after(100, self._read_events)
         self.after(2000, self._watch_system_theme)
 
@@ -499,6 +1068,139 @@ class Application(tk.Tk):
                     icon.put(self.colors["accent"], (x, y))
         return icon
 
+    def _rounded_style_image(
+        self, fill: str, *, border: str | None = None, radius: int = 10,
+        size: int = 32, backdrop: str | None = None,
+    ) -> tk.PhotoImage:
+        """Create a stretchable rounded rectangle used by ttk style elements."""
+        image = tk.PhotoImage(width=size, height=size)
+        border_width = 1 if border and border != fill else 0
+        backdrop_color = backdrop or self.colors["window"]
+
+        def inside(x: int, y: int, inset: int = 0) -> bool:
+            left, top = inset, inset
+            right, bottom = size - 1 - inset, size - 1 - inset
+            effective_radius = max(radius - inset, 1)
+            if not (left <= x <= right and top <= y <= bottom):
+                return False
+            if left + effective_radius <= x <= right - effective_radius:
+                return True
+            if top + effective_radius <= y <= bottom - effective_radius:
+                return True
+            center_x = left + effective_radius if x < left + effective_radius else right - effective_radius
+            center_y = top + effective_radius if y < top + effective_radius else bottom - effective_radius
+            return (x - center_x) ** 2 + (y - center_y) ** 2 <= effective_radius ** 2
+
+        # One Tcl call instead of one call per pixel. On Windows, the old loop
+        # caused tens of thousands of cross-interpreter calls during startup.
+        pixels: list[tuple[str, ...]] = []
+        for y in range(size):
+            row: list[str] = []
+            for x in range(size):
+                if not inside(x, y):
+                    row.append(backdrop_color)
+                elif border_width and not inside(x, y, border_width):
+                    row.append(border or fill)
+                else:
+                    row.append(fill)
+            pixels.append(tuple(row))
+        image.put(tuple(pixels))
+        self._style_images.append(image)
+        return image
+
+    def _install_rounded_style(
+        self, style: ttk.Style, style_name: str, *, normal: str,
+        active: str | None = None, pressed: str | None = None,
+        disabled: str | None = None, border: str | None = None,
+        radius: int = 10, kind: str = "button", backdrop: str | None = None,
+    ) -> None:
+        """Back a ttk button or frame style with a scalable rounded image."""
+        if sys.platform == "win32":
+            # Tk's Windows renderer becomes dramatically slower when many
+            # stretchable image elements cover large widgets (measured at
+            # ~18 s for the first frame). Use lightweight ttk backgrounds on
+            # Windows; native window rounding still comes from DWM.
+            return
+        self._style_generation += 1
+        element = f"SimilarisRounded{self._style_generation}"
+        normal_image = self._rounded_style_image(
+            normal, border=border, radius=radius, backdrop=backdrop
+        )
+        states: list[tuple[str, tk.PhotoImage]] = []
+        for state, color in (
+            ("disabled", disabled), ("pressed", pressed), ("active", active),
+        ):
+            if color:
+                states.append((state, self._rounded_style_image(
+                    color, border=border, radius=radius, backdrop=backdrop
+                )))
+        style.element_create(
+            element, "image", normal_image, *states,
+            border=(radius, radius, radius, radius), sticky="nsew",
+        )
+        if kind == "frame":
+            style.layout(style_name, [(element, {"sticky": "nsew"})])
+        else:
+            style.layout(style_name, [(
+                element,
+                {"sticky": "nsew", "children": [(
+                    "Button.padding",
+                    {"sticky": "nsew", "children": [("Button.label", {"sticky": "nsew"})]},
+                )]},
+            )])
+
+    def _install_rounded_entry_style(
+        self, style: ttk.Style, style_name: str, *, fill: str, border: str,
+        backdrop: str,
+    ) -> None:
+        if sys.platform == "win32":
+            return
+        self._style_generation += 1
+        element = f"SimilarisRoundedEntry{self._style_generation}"
+        normal = self._rounded_style_image(
+            fill, border=border, radius=9, backdrop=backdrop
+        )
+        focused = self._rounded_style_image(
+            fill, border=self.colors["accent"], radius=9, backdrop=backdrop
+        )
+        disabled = self._rounded_style_image(
+            self.colors["surface"], border=border, radius=9, backdrop=backdrop
+        )
+        style.element_create(
+            element, "image", normal,
+            ("focus", focused), ("disabled", disabled),
+            border=(9, 9, 9, 9), sticky="nsew",
+        )
+        style.layout(style_name, [(
+            element,
+            {"sticky": "nsew", "children": [(
+                "Entry.padding",
+                {"sticky": "nsew", "children": [("Entry.textarea", {"sticky": "nsew"})]},
+            )]},
+        )])
+
+    def _install_rounded_label_style(
+        self, style: ttk.Style, style_name: str, *, fill: str,
+        border: str | None = None, backdrop: str,
+    ) -> None:
+        if sys.platform == "win32":
+            return
+        self._style_generation += 1
+        element = f"SimilarisRoundedLabel{self._style_generation}"
+        image = self._rounded_style_image(
+            fill, border=border, radius=8, backdrop=backdrop
+        )
+        style.element_create(
+            element, "image", image, border=(8, 8, 8, 8), sticky="nsew",
+        )
+        style.layout(style_name, [(
+            element,
+            {"sticky": "nsew", "children": [(
+                "Label.padding",
+                {"sticky": "nsew", "children": [("Label.label", {"sticky": "nsew"})]},
+            )]},
+        )])
+
     def _configure_style(self) -> None:
         """Apply a cross-platform Fluent/WinUI-inspired visual language."""
         colors = self.colors
@@ -506,12 +1208,61 @@ class Application(tk.Tk):
         if "clam" in style.theme_names():
             style.theme_use("clam")
 
+        self._install_rounded_style(
+            style, "Card.TFrame", normal=colors["surface"], radius=14, kind="frame",
+            backdrop=colors["window"],
+        )
+        self._install_rounded_style(
+            style, "Elevated.TFrame",
+            normal=colors.get("elevated", colors["surface_alt"]), radius=12, kind="frame",
+            backdrop=colors["surface"],
+        )
+        self._install_rounded_style(
+            style, "ChoiceSurface.TFrame", normal=colors["surface"],
+            border=colors["border"], radius=9, kind="frame", backdrop=colors["surface"],
+        )
+        self._install_rounded_style(
+            style, "ChoiceElevated.TFrame",
+            normal=colors.get("elevated", colors["surface_alt"]),
+            border=colors["border"], radius=9, kind="frame",
+            backdrop=colors.get("elevated", colors["surface_alt"]),
+        )
+        self._install_rounded_style(
+            style, "ChoiceSelected.TFrame", normal=colors["selection"],
+            border=colors["accent"], radius=9, kind="frame",
+            backdrop=colors.get("elevated", colors["surface_alt"]),
+        )
+        self._install_rounded_style(
+            style, "ChoiceFocused.TFrame", normal=colors["surface_alt"],
+            border=colors["accent"], radius=9, kind="frame",
+            backdrop=colors.get("elevated", colors["surface_alt"]),
+        )
+        self._install_rounded_style(
+            style, "Select.TFrame", normal=colors["surface_alt"],
+            border=colors["border"], radius=9, kind="frame", backdrop=colors["surface"],
+        )
+        self._install_rounded_style(
+            style, "SelectFocused.TFrame", normal=colors["surface_alt"],
+            border=colors["accent"], radius=9, kind="frame", backdrop=colors["surface"],
+        )
+
         style.configure("TFrame", background=colors["window"])
-        style.configure("Card.TFrame", background=colors["surface"])
+        # The image element paints the surface. The style background is the
+        # color visible through its transparent rounded corners.
+        style.configure("Card.TFrame", background=colors["window"])
         style.configure(
-            "Elevated.TFrame", background=colors.get("elevated", colors["surface_alt"]),
+            "Elevated.TFrame", background=colors["surface"],
             relief="flat",
         )
+        style.configure("ChoiceSurface.TFrame", background=colors["surface"])
+        style.configure(
+            "ChoiceElevated.TFrame",
+            background=colors.get("elevated", colors["surface_alt"]),
+        )
+        style.configure("ChoiceSelected.TFrame", background=colors["selection"])
+        style.configure("ChoiceFocused.TFrame", background=colors["surface_alt"])
+        style.configure("Select.TFrame", background=colors["surface_alt"])
+        style.configure("SelectFocused.TFrame", background=colors["surface_alt"])
         style.configure(
             "Sidebar.TFrame", background=colors.get("sidebar", colors["surface"]), relief="flat"
         )
@@ -556,6 +1307,14 @@ class Application(tk.Tk):
             font=("Segoe UI Semibold", 10),
         )
         style.configure(
+            "Value.Card.TLabel", background=colors["selection"], foreground=colors["accent"],
+            font=("Segoe UI Semibold", 10), padding=(10, 5), anchor="center",
+        )
+        self._install_rounded_label_style(
+            style, "Value.Card.TLabel", fill=colors["selection"],
+            backdrop=colors["surface"],
+        )
+        style.configure(
             "Card.TLabelframe", background=colors["surface"], bordercolor=colors["border"],
             borderwidth=1, relief="solid",
         )
@@ -564,22 +1323,34 @@ class Application(tk.Tk):
             font=("Segoe UI Semibold", 10),
         )
         style.configure(
-            "TButton", font=("Segoe UI", 10), padding=(14, 7),
-            background=colors["surface_alt"], foreground=colors["text"],
-            bordercolor=colors["border"], focuscolor=colors["border"], relief="flat",
+            "TButton", font=("Segoe UI Semibold", 10), padding=(16, 10),
+            background=colors["surface"], foreground=colors["text"],
+            bordercolor=colors["border"], focuscolor=colors["accent"],
+            borderwidth=1, relief="flat",
         )
-        style.map(
-            "TButton", background=[("pressed", colors["control_pressed"]), ("active", colors["control_hover"])],
-            bordercolor=[("focus", colors["accent"]), ("active", colors["border"])],
+        style.map("TButton", bordercolor=[("focus", colors["accent"])])
+        self._install_rounded_style(
+            style, "TButton", normal=colors["surface_alt"],
+            active=colors["control_hover"], pressed=colors["control_pressed"],
+            disabled=colors["surface"], border=colors["border"],
+            backdrop=colors["surface"],
         )
         style.configure(
-            "Accent.TButton", background=colors["accent"], foreground=colors["accent_text"],
-            bordercolor=colors["accent"], font=("Segoe UI Semibold", 10), padding=(18, 10),
+            "Accent.TButton",
+            background=colors.get("elevated", colors["surface_alt"]),
+            foreground=colors["accent_text"],
+            bordercolor=colors["accent"], borderwidth=0,
+            font=("Segoe UI Semibold", 10), padding=(20, 12),
         )
         style.map(
             "Accent.TButton",
-            background=[("disabled", colors["border"]), ("pressed", colors["accent_pressed"]), ("active", colors["accent_hover"])],
             foreground=[("disabled", "#f4f4f4")],
+        )
+        self._install_rounded_style(
+            style, "Accent.TButton", normal=colors["accent"],
+            active=colors["accent_hover"], pressed=colors["accent_pressed"],
+            disabled=colors["border"],
+            backdrop=colors.get("elevated", colors["surface_alt"]),
         )
         style.configure(
             "TEntry", fieldbackground=colors["surface_alt"], foreground=colors["text"],
@@ -587,6 +1358,10 @@ class Application(tk.Tk):
             padding=(10, 7), insertcolor=colors["text"],
         )
         style.map("TEntry", bordercolor=[("focus", colors["accent"])])
+        self._install_rounded_entry_style(
+            style, "TEntry", fill=colors["surface_alt"], border=colors["border"],
+            backdrop=colors.get("elevated", colors["surface_alt"]),
+        )
         style.configure(
             "TCombobox", fieldbackground=colors["surface_alt"], background=colors["surface_alt"],
             foreground=colors["text"], bordercolor=colors["border"], padding=(8, 6),
@@ -638,26 +1413,28 @@ class Application(tk.Tk):
             "Nav.TButton", background=colors["surface"], foreground=colors["muted"],
             borderwidth=0, relief="flat", padding=(16, 9), font=("Segoe UI Semibold", 10),
         )
-        style.map(
-            "Nav.TButton", background=[("active", colors["control_hover"]), ("pressed", colors["control_pressed"])],
-            foreground=[("active", colors["text"])],
+        style.map("Nav.TButton", foreground=[("active", colors["text"])])
+        self._install_rounded_style(
+            style, "Nav.TButton", normal=colors["surface"],
+            active=colors["control_hover"], pressed=colors["control_pressed"],
+            backdrop=colors["surface"],
         )
         style.configure(
-            "Selected.Nav.TButton", background=colors["selection"], foreground=colors["accent"],
+            "Selected.Nav.TButton", background=colors["surface"], foreground=colors["accent"],
             borderwidth=0, relief="flat", padding=(16, 9), font=("Segoe UI Semibold", 10),
         )
         style.map(
-            "Selected.Nav.TButton", background=[("active", colors["selection"]), ("pressed", colors["control_pressed"])],
-            foreground=[("active", colors["accent_pressed"])],
+            "Selected.Nav.TButton", foreground=[("active", colors["accent_pressed"])]
+        )
+        self._install_rounded_style(
+            style, "Selected.Nav.TButton", normal=colors["selection"],
+            active=colors["selection"], pressed=colors["control_pressed"],
+            backdrop=colors["surface"],
         )
         style.configure(
             "Sidebar.TButton", background=colors["surface"], foreground=colors["text"],
             borderwidth=0, relief="flat", padding=(14, 11), anchor="w",
             font=("Segoe UI Semibold", 10),
-        )
-        style.map(
-            "Sidebar.TButton",
-            background=[("active", colors["control_hover"]), ("pressed", colors["control_pressed"])],
         )
         style.configure(
             "Selected.Sidebar.TButton", background=colors["selection"], foreground=colors["accent"],
@@ -666,11 +1443,20 @@ class Application(tk.Tk):
         )
         sidebar_color = colors.get("sidebar", colors["surface"])
         style.configure("Sidebar.TButton", background=sidebar_color)
-        style.configure("Selected.Sidebar.TButton", background=colors["selection"])
+        style.configure("Selected.Sidebar.TButton", background=sidebar_color)
         style.map(
             "Selected.Sidebar.TButton",
-            background=[("active", colors["selection"]), ("pressed", colors["control_pressed"])],
             foreground=[("active", colors["accent"])],
+        )
+        self._install_rounded_style(
+            style, "Sidebar.TButton", normal=sidebar_color,
+            active=colors["control_hover"], pressed=colors["control_pressed"],
+            backdrop=sidebar_color,
+        )
+        self._install_rounded_style(
+            style, "Selected.Sidebar.TButton", normal=colors["selection"],
+            active=colors["selection"], pressed=colors["control_pressed"],
+            backdrop=sidebar_color,
         )
         style.configure(
             "Settings.Sidebar.TButton",
@@ -678,20 +1464,25 @@ class Application(tk.Tk):
             borderwidth=0, relief="flat", padding=(14, 16), anchor="w",
             font=("Segoe UI Semibold", 11),
         )
-        style.map(
-            "Settings.Sidebar.TButton",
-            background=[("active", colors["control_hover"]), ("pressed", colors["control_pressed"])],
+        self._install_rounded_style(
+            style, "Settings.Sidebar.TButton", normal=sidebar_color,
+            active=colors["control_hover"], pressed=colors["control_pressed"],
+            backdrop=sidebar_color,
         )
         style.configure(
             "Selected.Settings.Sidebar.TButton",
-            background=colors["selection"], foreground=colors["accent"],
+            background=sidebar_color, foreground=colors["accent"],
             borderwidth=0, relief="flat", padding=(14, 16), anchor="w",
             font=("Segoe UI Semibold", 11),
         )
         style.map(
             "Selected.Settings.Sidebar.TButton",
-            background=[("active", colors["selection"]), ("pressed", colors["control_pressed"])],
             foreground=[("active", colors["accent"])],
+        )
+        self._install_rounded_style(
+            style, "Selected.Settings.Sidebar.TButton", normal=colors["selection"],
+            active=colors["selection"], pressed=colors["control_pressed"],
+            backdrop=sidebar_color,
         )
         style.configure(
             "Choice.TRadiobutton", background=colors["surface_alt"], foreground=colors["text"],
@@ -789,9 +1580,18 @@ class Application(tk.Tk):
         page_host.grid(row=0, column=1, sticky="nsew")
         page_host.columnconfigure(0, weight=1)
         page_host.rowconfigure(0, weight=1)
-        home = ttk.Frame(page_host, padding=(30, 24, 30, 24))
-        settings = ttk.Frame(page_host, padding=(32, 28, 32, 28))
-        self.section_pages = {"home": home, "settings": settings}
+        self.home_scroll = ScrollablePage(
+            page_host, padding=(30, 24, 30, 24)
+        )
+        self.settings_scroll = ScrollablePage(
+            page_host, padding=(32, 28, 32, 28)
+        )
+        home = self.home_scroll.content
+        settings = self.settings_scroll.content
+        self.scrollable_pages = (self.home_scroll, self.settings_scroll)
+        self.section_pages = {
+            "home": self.home_scroll, "settings": self.settings_scroll,
+        }
         for page in self.section_pages.values():
             page.grid(row=0, column=0, sticky="nsew")
 
@@ -813,19 +1613,22 @@ class Application(tk.Tk):
 
         self.selection_area = ttk.Frame(home)
         self.selection_area.grid(row=1, column=0, sticky="ew")
-        self.source_card = self._widget(
-            "folder", ttk.LabelFrame(self.selection_area, padding=16, style="Card.TLabelframe")
-        )
+        self.source_card = ttk.Frame(self.selection_area, padding=16, style="Card.TFrame")
+        self._widget(
+            "folder", ttk.Label(
+                self.source_card, style="Card.TLabel", font=("Segoe UI Semibold", 10)
+            )
+        ).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 9))
         self._widget(
             "source_hint", ttk.Label(
                 self.source_card, style="Muted.Card.TLabel", wraplength=480, justify="left"
             )
-        ).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 10))
+        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 10))
         self.source_summary = ttk.Label(
             self.source_card, textvariable=self.source_display, style="Muted.Card.TLabel",
             anchor="w",
         )
-        self.source_summary.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(0, 12))
+        self.source_summary.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(0, 12))
         Tooltip(self.source_summary, self._source_tooltip_text)
         self.source_card.columnconfigure(0, weight=1)
         self._widget(
@@ -833,32 +1636,36 @@ class Application(tk.Tk):
                 self.source_card, command=self._select_folder, image=self.ui_icons["folder"],
                 compound="left",
             )
-        ).grid(row=2, column=0, sticky="w", padx=(0, 6))
+        ).grid(row=3, column=0, sticky="w", padx=(0, 6))
         self._widget(
             "select_files", ttk.Button(
                 self.source_card, command=self._select_files,
                 image=self.ui_icons["images"], compound="left",
             )
-        ).grid(row=2, column=1, sticky="w", padx=(0, 6))
+        ).grid(row=3, column=1, sticky="w", padx=(0, 6))
         self._widget(
             "clear", ttk.Button(self.source_card, command=self._clear_source)
-        ).grid(row=2, column=2, sticky="e")
+        ).grid(row=3, column=2, sticky="e")
 
-        self.destination_card = self._widget(
-            "destination", ttk.LabelFrame(
-                self.selection_area, padding=16, style="Card.TLabelframe"
-            )
+        self.destination_card = ttk.Frame(
+            self.selection_area, padding=16, style="Card.TFrame"
         )
+        self._widget(
+            "destination", ttk.Label(
+                self.destination_card, style="Card.TLabel",
+                font=("Segoe UI Semibold", 10),
+            )
+        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 9))
         self._widget(
             "destination_hint", ttk.Label(
                 self.destination_card, style="Muted.Card.TLabel", wraplength=360, justify="left"
             )
-        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
+        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(0, 10))
         self.destination_summary = ttk.Label(
             self.destination_card, textvariable=self.destination_display,
             style="Muted.Card.TLabel", anchor="w",
         )
-        self.destination_summary.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 12))
+        self.destination_summary.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 12))
         Tooltip(
             self.destination_summary,
             lambda: self.output_folders.get(self.current_operation, "") or self.tr("no_destination"),
@@ -869,11 +1676,11 @@ class Application(tk.Tk):
                 self.destination_card, command=self._select_destination,
                 image=self.ui_icons["folder"], compound="left",
             )
-        ).grid(row=2, column=0, sticky="w")
+        ).grid(row=3, column=0, sticky="w")
         self._widget(
             "use_default_destination",
             ttk.Button(self.destination_card, command=self._use_default_destination),
-        ).grid(row=2, column=1, sticky="e")
+        ).grid(row=3, column=1, sticky="e")
         self._layout_selection(False)
 
         self.operations_shell = ttk.Frame(home, style="Card.TFrame")
@@ -897,9 +1704,9 @@ class Application(tk.Tk):
         self.duplicate_card = ttk.Frame(self.images_tab, padding=16, style="Elevated.TFrame")
         self.duplicate_card.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
         self._widget(
-            "duplicates_title", ttk.Checkbutton(
+            "duplicates_title", ModernToggle(
                 self.duplicate_card, variable=self.find_duplicates,
-                command=self._refresh_feature_states, style="Elevated.TCheckbutton",
+                command=self._refresh_feature_states,
             )
         ).grid(row=0, column=0, sticky="w")
         self._widget(
@@ -915,12 +1722,12 @@ class Application(tk.Tk):
         sensitivity = ttk.Frame(self.duplicate_card, style="Elevated.TFrame")
         sensitivity.grid(row=3, column=0, sticky="ew")
         sensitivity.columnconfigure((0, 1), weight=1, uniform="sensitivity")
-        self.sensitivity_buttons: dict[str, ttk.Radiobutton] = {}
+        self.sensitivity_buttons: dict[str, ModernChoice] = {}
         for index, value in enumerate(("conservative", "balanced", "sensitive")):
             row, column = divmod(index, 2)
-            button = ttk.Radiobutton(
+            button = ModernChoice(
                 sensitivity, variable=self.sensitivity, value=value,
-                style="Choice.TRadiobutton", command=self._refresh_sensitivity_cards,
+                command=self._refresh_sensitivity_cards, surface="elevated",
             )
             button.grid(
                 row=row, column=column, columnspan=2 if index == 2 else 1,
@@ -936,8 +1743,9 @@ class Application(tk.Tk):
         self.rename_card = ttk.Frame(self.images_tab, padding=16, style="Elevated.TFrame")
         self.rename_card.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
         self._widget(
-            "rename_title", ttk.Checkbutton(
-                self.rename_card, variable=self.rename_images, style="Elevated.TCheckbutton"
+            "rename_title", ModernToggle(
+                self.rename_card, variable=self.rename_images,
+                command=self._refresh_feature_states,
             )
         ).grid(row=0, column=0, sticky="w")
         self._widget(
@@ -945,11 +1753,26 @@ class Application(tk.Tk):
                 self.rename_card, style="Muted.Elevated.TLabel", wraplength=290, justify="left"
             )
         ).grid(row=1, column=0, sticky="w", pady=(2, 14))
-        self.rename_preview = ttk.Label(
-            self.rename_card, text='img (1).jpg  ·  img (2).jpg  ·  img (3).jpg',
-            style="Elevated.TLabel",
+        self._widget(
+            "rename_prefix", ttk.Label(
+                self.rename_card, style="Elevated.TLabel",
+                font=("Segoe UI Semibold", 10),
+            )
+        ).grid(row=2, column=0, sticky="w", pady=(0, 6))
+        self.rename_prefix_entry = ttk.Entry(
+            self.rename_card, textvariable=self.rename_prefix, width=28,
         )
-        self.rename_preview.grid(row=2, column=0, sticky="w")
+        self.rename_prefix_entry.grid(row=3, column=0, sticky="ew")
+        self.rename_preview = ttk.Label(self.rename_card, style="Elevated.TLabel")
+        self.rename_preview.grid(row=4, column=0, sticky="w", pady=(9, 2))
+        self._widget(
+            "rename_prefix_hint", ttk.Label(
+                self.rename_card, style="Muted.Elevated.TLabel",
+                wraplength=290, justify="left",
+            )
+        ).grid(row=5, column=0, sticky="w")
+        self.rename_prefix.trace_add("write", lambda *_args: self._update_rename_preview())
+        self._update_rename_preview()
 
         conversion_navigation = ttk.Frame(self.convert_tab, style="Card.TFrame", padding=(8, 7))
         conversion_navigation.grid(row=0, column=0, sticky="ew")
@@ -987,14 +1810,23 @@ class Application(tk.Tk):
         image_quality.grid(row=2, column=0, sticky="ew")
         image_quality.columnconfigure(1, weight=1)
         self._widget("output_format", ttk.Label(image_quality, style="Card.TLabel")).grid(row=0, column=0, sticky="w")
-        ttk.Label(image_quality, text="JPG", style="Accent.Card.TLabel").grid(row=0, column=1, sticky="w", padx=(18, 0))
+        image_format_choices = ttk.Frame(image_quality, style="Card.TFrame")
+        image_format_choices.grid(row=0, column=1, sticky="ew", padx=(18, 0))
+        image_format_choices.columnconfigure((0, 1, 2), weight=1, uniform="image_format")
+        for column, image_format in enumerate(("jpg", "png", "webp")):
+            ModernChoice(
+                image_format_choices, text=image_format.upper(),
+                variable=self.image_format, value=image_format, surface="surface",
+            ).grid(row=0, column=column, sticky="ew", padx=(0 if column == 0 else 4, 0))
         self._widget("quality", ttk.Label(image_quality, style="Card.TLabel")).grid(row=1, column=0, sticky="w", pady=(16, 0))
-        self.jpg_scale = ttk.Scale(
+        self.jpg_scale = ModernSlider(
             image_quality, from_=1, to=100, variable=self.jpg_quality,
             command=lambda _value: self.jpg_quality_value.configure(text=str(self.jpg_quality.get())),
         )
         self.jpg_scale.grid(row=1, column=1, sticky="ew", padx=(18, 10), pady=(16, 0))
-        self.jpg_quality_value = ttk.Label(image_quality, text=str(self.jpg_quality.get()), style="Card.TLabel", width=3)
+        self.jpg_quality_value = ttk.Label(
+            image_quality, text=str(self.jpg_quality.get()), style="Value.Card.TLabel", width=3
+        )
         self.jpg_quality_value.grid(row=1, column=2, pady=(16, 0))
         self._widget("quality_help", ttk.Label(image_quality, style="Muted.Card.TLabel")).grid(row=2, column=1, sticky="w", padx=(18, 0), pady=(4, 0))
         self._widget("keep_originals", ttk.Label(self.photo_conversion_tab, style="Muted.Card.TLabel")).grid(row=3, column=0, sticky="w", pady=(18, 0))
@@ -1005,16 +1837,34 @@ class Application(tk.Tk):
         video_quality.grid(row=2, column=0, sticky="ew")
         video_quality.columnconfigure(1, weight=1)
         self._widget("output_format", ttk.Label(video_quality, style="Card.TLabel")).grid(row=0, column=0, sticky="w")
-        ttk.Label(video_quality, text="MP4 · H.264/AAC", style="Accent.Card.TLabel").grid(row=0, column=1, sticky="w", padx=(18, 0))
+        video_format_choices = ttk.Frame(video_quality, style="Card.TFrame")
+        video_format_choices.grid(row=0, column=1, sticky="ew", padx=(18, 0))
+        video_format_choices.columnconfigure((0, 1, 2), weight=1, uniform="video_format")
+        for column, video_format in enumerate(("mp4", "avi", "mkv")):
+            ModernChoice(
+                video_format_choices, text=video_format.upper(),
+                variable=self.video_format, value=video_format, surface="surface",
+            ).grid(row=0, column=column, sticky="ew", padx=(0 if column == 0 else 4, 0))
         self._widget("quality", ttk.Label(video_quality, style="Card.TLabel")).grid(row=1, column=0, sticky="w", pady=(16, 0))
-        self.video_scale = ttk.Scale(
-            video_quality, from_=0, to=51, variable=self.video_quality,
-            command=lambda _value: self.video_quality_value.configure(text=str(self.video_quality.get())),
-        )
-        self.video_scale.grid(row=1, column=1, sticky="ew", padx=(18, 10), pady=(16, 0))
-        self.video_quality_value = ttk.Label(video_quality, text=str(self.video_quality.get()), style="Card.TLabel", width=3)
-        self.video_quality_value.grid(row=1, column=2, pady=(16, 0))
-        self._widget("lower", ttk.Label(video_quality, style="Muted.Card.TLabel")).grid(row=2, column=1, sticky="w", padx=(18, 0), pady=(4, 0))
+        video_quality_choices = ttk.Frame(video_quality, style="Card.TFrame")
+        video_quality_choices.grid(row=1, column=1, sticky="ew", padx=(18, 0), pady=(16, 0))
+        video_quality_choices.columnconfigure((0, 1, 2), weight=1, uniform="video_quality")
+        for column, (key, crf) in enumerate((
+            ("video_quality_high", 18),
+            ("video_quality_balanced", 23),
+            ("video_quality_compact", 28),
+        )):
+            self._widget(
+                key,
+                ModernChoice(
+                    video_quality_choices, variable=self.video_quality,
+                    value=crf, surface="surface",
+                ),
+            ).grid(row=0, column=column, sticky="ew", padx=(0 if column == 0 else 4, 0))
+        self._widget(
+            "video_quality_help",
+            ttk.Label(video_quality, style="Muted.Card.TLabel"),
+        ).grid(row=2, column=1, sticky="w", padx=(18, 0), pady=(7, 0))
         self._widget("keep_originals", ttk.Label(self.video_conversion_tab, style="Muted.Card.TLabel")).grid(row=3, column=0, sticky="w", pady=(18, 0))
 
         self._widget("hardware_recommendation", ttk.Label(self.enhance_tab, wraplength=760, style="Muted.Card.TLabel")).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 16))
@@ -1023,18 +1873,18 @@ class Application(tk.Tk):
         self._widget("enlargement", ttk.Label(enhance_options, style="Card.TLabel")).grid(row=0, column=0, sticky="w", padx=(0, 14))
         self.scale_buttons = {}
         for column, scale in enumerate((2, 3, 4), 1):
-            button = ttk.Radiobutton(
+            button = ModernChoice(
                 enhance_options, text=f"{scale}×", variable=self.enhancement_scale,
-                value=scale, style="Choice.TRadiobutton",
+                value=scale, surface="surface",
             )
             button.grid(row=0, column=column, padx=(0, 4))
             self.scale_buttons[scale] = button
         self._widget("image_type", ttk.Label(enhance_options, style="Card.TLabel")).grid(row=1, column=0, sticky="w", padx=(0, 14), pady=(14, 0))
         self.model_buttons = {}
         for column, model in enumerate(("photo", "illustration"), 1):
-            button = ttk.Radiobutton(
+            button = ModernChoice(
                 enhance_options, variable=self.enhancement_model, value=model,
-                style="Choice.TRadiobutton",
+                surface="surface",
             )
             button.grid(row=1, column=column, sticky="ew", padx=(0, 4), pady=(14, 0))
             self.model_buttons[model] = button
@@ -1048,16 +1898,16 @@ class Application(tk.Tk):
         mode.columnconfigure((0, 1), weight=1, uniform="mode")
         simulation = ttk.Frame(mode, padding=13, style="Elevated.TFrame")
         simulation.grid(row=0, column=0, sticky="ew", padx=(0, 6))
-        self._widget("simulation_title", ttk.Radiobutton(
-            simulation, variable=self.apply_changes, value=False, style="Choice.TRadiobutton"
+        self._widget("simulation_title", ModernChoice(
+            simulation, variable=self.apply_changes, value=False, surface="elevated"
         )).grid(row=0, column=0, sticky="w")
         self._widget("simulation_description", ttk.Label(
             simulation, style="Muted.Elevated.TLabel", wraplength=290
         )).grid(row=1, column=0, sticky="w", pady=(2, 0))
         apply_mode = ttk.Frame(mode, padding=13, style="Elevated.TFrame")
         apply_mode.grid(row=0, column=1, sticky="ew", padx=(6, 0))
-        self._widget("apply_title", ttk.Radiobutton(
-            apply_mode, variable=self.apply_changes, value=True, style="Choice.TRadiobutton"
+        self._widget("apply_title", ModernChoice(
+            apply_mode, variable=self.apply_changes, value=True, surface="elevated"
         )).grid(row=0, column=0, sticky="w")
         self._widget("apply_description", ttk.Label(
             apply_mode, style="Muted.Elevated.TLabel", wraplength=290
@@ -1106,7 +1956,10 @@ class Application(tk.Tk):
             selectbackground=self.colors["selection"], selectforeground=self.colors["text"],
             borderwidth=0, highlightthickness=0, padx=12, pady=10,
         )
-        scrollbar = ttk.Scrollbar(self.results_box, orient="vertical", command=self.log.yview)
+        scrollbar = FluentScrollbar(
+            self.results_box, orient="vertical", command=self.log.yview
+        )
+        self.log_scrollbar = scrollbar
         self.log.configure(yscrollcommand=scrollbar.set)
         self.log.grid(row=1, column=0, sticky="nsew")
         scrollbar.grid(row=1, column=1, sticky="ns")
@@ -1144,12 +1997,14 @@ class Application(tk.Tk):
             page.grid(row=0, column=0, sticky="nsew")
         appearance.columnconfigure(1, weight=1)
         self._widget("theme_setting", ttk.Label(appearance, style="Card.TLabel")).grid(row=0, column=0, sticky="w", padx=(0, 25), pady=(0, 14))
-        self.theme_box = ttk.Combobox(appearance, textvariable=self.theme_name, state="readonly", width=24)
+        self.theme_box = ModernSelect(
+            appearance, variable=self.theme_name, values=[],
+            command=self._theme_selected, width=24,
+        )
         self.theme_box.grid(row=0, column=1, sticky="w", pady=(0, 14))
-        self.theme_box.bind("<<ComboboxSelected>>", self._theme_selected)
         self._widget("language_setting", ttk.Label(appearance, style="Card.TLabel")).grid(row=1, column=0, sticky="w", padx=(0, 25))
-        self.language_box = ttk.Combobox(
-            appearance, textvariable=self.language_name, values=list(LANGUAGES), state="readonly", width=24,
+        self.language_box = ModernSelect(
+            appearance, variable=self.language_name, values=list(LANGUAGES), width=24,
         )
         self.language_box.grid(row=1, column=1, sticky="w")
         self.language_name.trace_add("write", lambda *_: self._translate())
@@ -1162,7 +2017,10 @@ class Application(tk.Tk):
             selectbackground=self.colors["selection"], selectforeground=self.colors["text"],
             borderwidth=0, highlightthickness=0,
         )
-        license_scrollbar = ttk.Scrollbar(licenses, orient="vertical", command=self.license_text.yview)
+        license_scrollbar = FluentScrollbar(
+            licenses, orient="vertical", command=self.license_text.yview
+        )
+        self.license_scrollbar = license_scrollbar
         self.license_text.configure(yscrollcommand=license_scrollbar.set)
         self.license_text.grid(row=0, column=0, sticky="nsew")
         license_scrollbar.grid(row=0, column=1, sticky="ns")
@@ -1256,29 +2114,74 @@ class Application(tk.Tk):
             selectbackground=self.colors["selection"], selectforeground=self.colors["text"],
             insertbackground=self.colors["text"],
         )
+        for control in self.custom_controls:
+            control.refresh()
+        for page in getattr(self, "scrollable_pages", ()):
+            page.refresh_theme()
+        for scrollbar in (
+            getattr(self, "log_scrollbar", None),
+            getattr(self, "license_scrollbar", None),
+        ):
+            if scrollbar is not None:
+                scrollbar.refresh_theme()
         self.after_idle(self._update_native_titlebar)
 
     def _update_native_titlebar(self) -> None:
-        """Keep the Windows frame synchronized with the application theme."""
+        """Use the native Windows 11 dark caption, rounded corners, and Acrylic."""
         if sys.platform != "win32":
             return
         try:
             import ctypes
+            from ctypes import wintypes
 
             self.update_idletasks()
+            user32 = ctypes.windll.user32
+            dwmapi = ctypes.windll.dwmapi
+            user32.GetAncestor.argtypes = (wintypes.HWND, wintypes.UINT)
+            user32.GetAncestor.restype = wintypes.HWND
+            user32.GetParent.argtypes = (wintypes.HWND,)
+            user32.GetParent.restype = wintypes.HWND
+            dwmapi.DwmSetWindowAttribute.argtypes = (
+                wintypes.HWND, wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD,
+            )
+            dwmapi.DwmSetWindowAttribute.restype = ctypes.c_long
             child = self.winfo_id()
-            hwnd = ctypes.windll.user32.GetParent(child) or child
+            # GA_ROOT is more reliable than a single GetParent call for Tk's
+            # wrapper/child window hierarchy.
+            hwnd = user32.GetAncestor(child, 2)
+            if not hwnd:
+                hwnd = user32.GetParent(child) or child
             enabled = ctypes.c_int(1 if self.effective_theme == "dark" else 0)
             for attribute in (20, 19):
-                if ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                if dwmapi.DwmSetWindowAttribute(
                     hwnd, attribute, ctypes.byref(enabled), ctypes.sizeof(enabled)
                 ) == 0:
                     break
-            color = self.colors["window"].lstrip("#")
-            red, green, blue = (int(color[index:index + 2], 16) for index in (0, 2, 4))
-            caption_color = ctypes.c_int(red | (green << 8) | (blue << 16))
-            ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                hwnd, 35, ctypes.byref(caption_color), ctypes.sizeof(caption_color)
+            if self.effective_theme == "dark":
+                color = self.colors["window"].lstrip("#")
+                red, green, blue = (
+                    int(color[index:index + 2], 16) for index in (0, 2, 4)
+                )
+                caption_value = red | (green << 8) | (blue << 16)
+                text_value = 0x00FFFFFF
+            else:
+                # DWMWA_COLOR_DEFAULT lets Windows follow the current system material.
+                caption_value = 0xFFFFFFFF
+                text_value = 0xFFFFFFFF
+            for attribute, value in ((35, caption_value), (36, text_value)):
+                native_color = ctypes.c_uint(value)
+                dwmapi.DwmSetWindowAttribute(
+                    hwnd, attribute, ctypes.byref(native_color), ctypes.sizeof(native_color)
+                )
+
+            rounded = ctypes.c_int(2)  # DWMWCP_ROUND
+            backdrop = ctypes.c_int(3)  # DWMSBT_TRANSIENTWINDOW (Acrylic)
+            for attribute, value in ((33, rounded), (38, backdrop)):
+                dwmapi.DwmSetWindowAttribute(
+                    hwnd, attribute, ctypes.byref(value), ctypes.sizeof(value)
+                )
+            user32.RedrawWindow(
+                hwnd, None, None, 0x0001 | 0x0100 | 0x0400
             )
         except (AttributeError, OSError, ValueError):
             pass
@@ -1602,12 +2505,21 @@ class Application(tk.Tk):
     def _refresh_sensitivity_cards(self) -> None:
         self._sensitivity_selected()
 
+    def _update_rename_preview(self) -> None:
+        prefix = self.rename_prefix.get().strip() or "…"
+        self.rename_preview.configure(
+            text=f"{prefix} (1).jpg  ·  {prefix} (2).jpg  ·  {prefix} (3).jpg"
+        )
+
     def _refresh_feature_states(self) -> None:
         state = "normal" if self.find_duplicates.get() else "disabled"
         for button in self.sensitivity_buttons.values():
             button.configure(state=state)
         self.sensitivity_help.configure(
             text=self.tr(f"sensitivity_{self.sensitivity.get()}")
+        )
+        self.rename_prefix_entry.configure(
+            state="normal" if self.rename_images.get() else "disabled"
         )
 
     def _update_ready_status(self) -> None:
@@ -1671,7 +2583,8 @@ class Application(tk.Tk):
         if self.current_operation == "images":
             if self.apply_changes.get(): arguments.append("--apply")
             if not self.find_duplicates.get(): arguments.append("--skip-duplicates")
-            if self.rename_images.get(): arguments.append("--rename")
+            if self.rename_images.get():
+                arguments.extend(("--rename", "--rename-prefix", self.rename_prefix.get().strip()))
         elif self.current_operation == "convert":
             if self.convert_images.get(): arguments.append("--convert-images")
             if self.convert_videos.get(): arguments.append("--convert-videos")
@@ -1679,7 +2592,12 @@ class Application(tk.Tk):
         elif self.current_operation == "enhance":
             if self.enhance_images.get(): arguments.append("--enhance-images")
             arguments.extend(("--skip-duplicates", "--enhance-only"))
-        arguments += ["--jpg-quality", str(self.jpg_quality.get()), "--video-quality", str(self.video_quality.get())]
+        arguments += [
+            "--jpg-quality", str(self.jpg_quality.get()),
+            "--image-format", self.image_format.get(),
+            "--video-quality", str(self.video_quality.get()),
+            "--video-format", self.video_format.get(),
+        ]
         arguments += ["--language", self.language]
         arguments += ["--sensitivity", self.sensitivity.get()]
         arguments += ["--enhancement-scale", str(self.enhancement_scale.get())]
@@ -1719,6 +2637,16 @@ class Application(tk.Tk):
         }[self.current_operation]
         if not selected_operation:
             messagebox.showwarning(self.tr("none_title"), self.tr("none")); return
+        if (
+            self.current_operation == "images"
+            and self.rename_images.get()
+            and not photo_organizer.valid_rename_prefix(self.rename_prefix.get())
+        ):
+            messagebox.showwarning(
+                self.tr("invalid_prefix_title"), self.tr("invalid_prefix")
+            )
+            self.rename_prefix_entry.focus_set()
+            return
         changes_images = self.current_operation == "images" and self.apply_changes.get()
         if changes_images and not skip_confirmation and not messagebox.askyesno(self.tr("confirm_title"), self.tr("confirm")): return
         self.log.configure(state="normal"); self.log.delete("1.0", "end"); self.log.configure(state="disabled")
