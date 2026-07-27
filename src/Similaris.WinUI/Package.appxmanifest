@@ -11,6 +11,8 @@
   </Dependencies>
   <Resources>
     <Resource Language="pt-BR" />
+    <Resource Language="en-US" />
+    <Resource Language="es-ES" />
   </Resources>
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$">
