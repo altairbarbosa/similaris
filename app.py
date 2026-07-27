@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import locale
+import math
 import os
 import queue
 import re
@@ -15,6 +16,7 @@ import time
 import traceback
 import webbrowser
 from pathlib import Path
+from typing import Callable
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
@@ -36,11 +38,13 @@ THEME_COLORS = {
         "control_pressed": "#e3e3e3", "progress_trough": "#dfdfdf",
     },
     "dark": {
-        "window": "#202020", "surface": "#2b2b2b", "surface_alt": "#323232",
-        "border": "#454545", "text": "#f5f5f5", "muted": "#c4c4c4",
-        "accent": "#60cdff", "accent_hover": "#75d5ff", "accent_pressed": "#4cc2ff",
-        "selection": "#0f4c6a", "control_hover": "#3a3a3a", "accent_text": "#102027",
-        "control_pressed": "#454545", "progress_trough": "#414141",
+        "window": "#0f1115", "surface": "#1b1f27", "surface_alt": "#20252f",
+        "border": "#2c3440", "text": "#f4f7fb", "muted": "#a7b0be",
+        "accent": "#2ea8ff", "accent_hover": "#249ceb", "accent_pressed": "#168bd2",
+        "selection": "#183a52", "control_hover": "#252c37", "accent_text": "#ffffff",
+        "control_pressed": "#2c3440", "progress_trough": "#252c35",
+        "disabled": "#667080", "success": "#22c55e", "warning": "#f59e0b",
+        "error": "#ef4444", "sidebar": "#151820", "elevated": "#20252f",
     },
 }
 TEXT = {
@@ -187,6 +191,136 @@ TEXT = {
     },
 }
 
+TEXT["en-US"].update({
+    "images_page_description": "Find duplicate images, standardize filenames, and safely organize your library.",
+    "convert_page_description": "Convert images and videos while preserving the original files.",
+    "enhance_page_description": "Increase image resolution locally with Real-ESRGAN.",
+    "start_images": "Analyze images", "start_convert": "Convert files",
+    "start_enhance": "Enhance images",
+    "nav_organize": "Organize", "nav_convert": "Convert", "nav_enhance": "Enhance",
+    "source_hint": "Choose a folder or select individual files to begin.",
+    "clear": "Clear", "use_source_folder": "Use source folder",
+    "use_default_destination": "Use default destination",
+    "destination_hint": "Generated files will be saved here.",
+    "duplicates_title": "Find duplicate images",
+    "duplicates_description": "Identify identical or visually similar files.",
+    "rename_title": "Rename files",
+    "rename_description": "Standardize the names of processed files.",
+    "sensitivity_title": "Detection sensitivity",
+    "simulation_title": "Simulate changes",
+    "simulation_description": "Preview the result without moving or renaming files.",
+    "apply_title": "Apply changes",
+    "apply_description": "Perform the selected changes on the files.",
+    "apply_warning": "Files may be moved or renamed. Originals used for conversion are preserved.",
+    "output_format": "Output format", "quality": "Quality",
+    "quality_help": "Higher quality creates larger files.",
+    "keep_originals": "Original files are always preserved.",
+    "image_conversion_title": "Convert images to JPG",
+    "image_conversion_description": "Create high-quality JPG copies without changing resolution.",
+    "video_conversion_title": "Convert videos to MP4",
+    "video_conversion_description": "Create MP4 (H.264/AAC) copies while preserving originals.",
+    "local_processing_title": "Local processing",
+    "local_processing_message": "Real-ESRGAN processes images on this computer. Files are not uploaded to the internet.",
+    "hardware_recommendation": "A Vulkan-compatible GPU is recommended for faster processing.",
+    "enlargement": "Enlargement", "image_type": "Image type",
+    "ready_images": "Ready to analyze", "ready_convert": "Ready to convert",
+    "ready_enhance": "Ready to enhance", "select_source_begin": "Select a source to begin",
+    "all_files": "All files", "selected_source_count": "{count} compatible files",
+    "details_empty": "Processing details will appear here.",
+    "copy_log": "Copy log", "open_destination": "Open destination",
+    "open_destination_error": "The destination folder could not be opened.",
+    "conservative": "Safer", "balanced": "Balanced", "sensitive": "Broader",
+    "sensitivity_conservative": "Reduces false positives and prioritizes very close matches.",
+    "sensitivity_balanced": "Recommended for most image libraries.",
+    "sensitivity_sensitive": "Finds more similar images, with a higher chance of false positives.",
+})
+TEXT["pt-BR"].update({
+    "images_page_description": "Encontre imagens duplicadas, padronize nomes e organize sua biblioteca com segurança.",
+    "convert_page_description": "Converta imagens e vídeos preservando os arquivos originais.",
+    "enhance_page_description": "Aumente a resolução das imagens localmente com o Real-ESRGAN.",
+    "start_images": "Analisar imagens", "start_convert": "Converter arquivos",
+    "start_enhance": "Aprimorar imagens",
+    "nav_organize": "Organizar", "nav_convert": "Converter", "nav_enhance": "Aprimorar",
+    "source_hint": "Escolha uma pasta ou selecione arquivos individuais para começar.",
+    "clear": "Limpar", "use_source_folder": "Usar pasta de origem",
+    "use_default_destination": "Usar destino padrão",
+    "destination_hint": "Os arquivos gerados serão salvos neste local.",
+    "duplicates_title": "Encontrar imagens duplicadas",
+    "duplicates_description": "Identifique arquivos iguais ou visualmente semelhantes.",
+    "rename_title": "Renomear arquivos",
+    "rename_description": "Padronize os nomes dos arquivos processados.",
+    "sensitivity_title": "Sensibilidade da detecção",
+    "simulation_title": "Simular alterações",
+    "simulation_description": "Exibe o resultado sem mover ou renomear arquivos.",
+    "apply_title": "Aplicar alterações",
+    "apply_description": "Executa as alterações selecionadas nos arquivos.",
+    "apply_warning": "Arquivos poderão ser movidos ou renomeados. Originais usados em conversões são preservados.",
+    "output_format": "Formato de saída", "quality": "Qualidade",
+    "quality_help": "Qualidade maior gera arquivos maiores.",
+    "keep_originals": "Os arquivos originais são sempre preservados.",
+    "image_conversion_title": "Converter imagens para JPG",
+    "image_conversion_description": "Crie cópias JPG de alta qualidade sem alterar a resolução.",
+    "video_conversion_title": "Converter vídeos para MP4",
+    "video_conversion_description": "Crie cópias MP4 (H.264/AAC) preservando os originais.",
+    "local_processing_title": "Processamento local",
+    "local_processing_message": "O Real-ESRGAN processa suas imagens neste computador. Os arquivos não são enviados para a internet.",
+    "hardware_recommendation": "Recomenda-se uma GPU compatível com Vulkan para maior velocidade.",
+    "enlargement": "Ampliação", "image_type": "Tipo de imagem",
+    "ready_images": "Pronto para analisar", "ready_convert": "Pronto para converter",
+    "ready_enhance": "Pronto para aprimorar", "select_source_begin": "Selecione uma origem para começar",
+    "all_files": "Todos os arquivos", "selected_source_count": "{count} arquivos compatíveis",
+    "details_empty": "Os detalhes do processamento aparecerão aqui.",
+    "copy_log": "Copiar log", "open_destination": "Abrir destino",
+    "open_destination_error": "Não foi possível abrir a pasta de destino.",
+    "conservative": "Mais segura", "balanced": "Equilibrada", "sensitive": "Mais abrangente",
+    "sensitivity_conservative": "Reduz falsos positivos e prioriza correspondências muito próximas.",
+    "sensitivity_balanced": "Recomendada para a maioria das bibliotecas.",
+    "sensitivity_sensitive": "Encontra mais imagens semelhantes, com maior possibilidade de falsos positivos.",
+})
+TEXT["es-ES"].update({
+    "images_page_description": "Encuentra imágenes duplicadas, estandariza nombres y organiza tu biblioteca de forma segura.",
+    "convert_page_description": "Convierte imágenes y videos conservando los archivos originales.",
+    "enhance_page_description": "Aumenta localmente la resolución de las imágenes con Real-ESRGAN.",
+    "start_images": "Analizar imágenes", "start_convert": "Convertir archivos",
+    "start_enhance": "Mejorar imágenes",
+    "nav_organize": "Organizar", "nav_convert": "Convertir", "nav_enhance": "Mejorar",
+    "source_hint": "Elige una carpeta o selecciona archivos individuales para comenzar.",
+    "clear": "Limpiar", "use_source_folder": "Usar la carpeta de origen",
+    "use_default_destination": "Usar el destino predeterminado",
+    "destination_hint": "Los archivos generados se guardarán en esta ubicación.",
+    "duplicates_title": "Encontrar imágenes duplicadas",
+    "duplicates_description": "Identifica archivos idénticos o visualmente similares.",
+    "rename_title": "Renombrar archivos",
+    "rename_description": "Estandariza los nombres de los archivos procesados.",
+    "sensitivity_title": "Sensibilidad de detección",
+    "simulation_title": "Simular cambios",
+    "simulation_description": "Muestra el resultado sin mover ni renombrar archivos.",
+    "apply_title": "Aplicar cambios",
+    "apply_description": "Ejecuta los cambios seleccionados en los archivos.",
+    "apply_warning": "Los archivos pueden moverse o renombrarse. Los originales usados en conversiones se conservan.",
+    "output_format": "Formato de salida", "quality": "Calidad",
+    "quality_help": "Una calidad mayor genera archivos más grandes.",
+    "keep_originals": "Los archivos originales siempre se conservan.",
+    "image_conversion_title": "Convertir imágenes a JPG",
+    "image_conversion_description": "Crea copias JPG de alta calidad sin cambiar la resolución.",
+    "video_conversion_title": "Convertir vídeos a MP4",
+    "video_conversion_description": "Crea copias MP4 (H.264/AAC) conservando los originales.",
+    "local_processing_title": "Procesamiento local",
+    "local_processing_message": "Real-ESRGAN procesa tus imágenes en este equipo. Los archivos no se envían a internet.",
+    "hardware_recommendation": "Se recomienda una GPU compatible con Vulkan para un procesamiento más rápido.",
+    "enlargement": "Ampliación", "image_type": "Tipo de imagen",
+    "ready_images": "Listo para analizar", "ready_convert": "Listo para convertir",
+    "ready_enhance": "Listo para mejorar", "select_source_begin": "Selecciona un origen para comenzar",
+    "all_files": "Todos los archivos", "selected_source_count": "{count} archivos compatibles",
+    "details_empty": "Los detalles del procesamiento aparecerán aquí.",
+    "copy_log": "Copiar registro", "open_destination": "Abrir destino",
+    "open_destination_error": "No se pudo abrir la carpeta de destino.",
+    "conservative": "Más segura", "balanced": "Equilibrada", "sensitive": "Más amplia",
+    "sensitivity_conservative": "Reduce los falsos positivos y prioriza coincidencias muy cercanas.",
+    "sensitivity_balanced": "Recomendada para la mayoría de las bibliotecas.",
+    "sensitivity_sensitive": "Encuentra más imágenes similares, con mayor posibilidad de falsos positivos.",
+})
+
 
 def system_language() -> str:
     language = (locale.getlocale()[0] or "en_US").lower()
@@ -247,22 +381,60 @@ class QueueWriter:
             if analyzed:
                 completed, total = map(int, analyzed.groups())
                 self.events.put(("progress", 30 * completed / max(total, 1)))
+                self.events.put(("status", value.strip()))
             elif compared:
                 phase_percent = float(compared.group(1).replace(",", "."))
                 self.events.put(("progress", 30 + 0.7 * phase_percent))
+                self.events.put(("status", value.strip()))
             elif enhanced:
                 self.events.put(("progress", float(enhanced.group(1).replace(",", "."))))
+                self.events.put(("status", value.strip()))
         return len(value)
 
     def flush(self) -> None:
         pass
 
 
+class Tooltip:
+    """Small dependency-free tooltip for truncated paths and icon-only navigation."""
+
+    def __init__(self, widget: tk.Misc, text: Callable[[], str]) -> None:
+        self.widget = widget
+        self.text = text
+        self.window: tk.Toplevel | None = None
+        widget.bind("<Enter>", self._show, add="+")
+        widget.bind("<Leave>", self._hide, add="+")
+        widget.bind("<ButtonPress>", self._hide, add="+")
+
+    def _show(self, _event: object = None) -> None:
+        value = str(self.text()).strip()
+        if not value or self.window is not None:
+            return
+        self.window = tk.Toplevel(self.widget)
+        self.window.overrideredirect(True)
+        self.window.attributes("-topmost", True)
+        x = self.widget.winfo_rootx() + 12
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 6
+        self.window.geometry(f"+{x}+{y}")
+        colors = getattr(self.widget.winfo_toplevel(), "colors", THEME_COLORS["dark"])
+        tk.Label(
+            self.window, text=value, justify="left", wraplength=520,
+            background=colors["surface_alt"], foreground=colors["text"],
+            relief="solid", borderwidth=1, padx=9, pady=6,
+            font=("Segoe UI", 9),
+        ).pack()
+
+    def _hide(self, _event: object = None) -> None:
+        if self.window is not None:
+            self.window.destroy()
+            self.window = None
+
+
 class Application(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.geometry("1000x650")
-        self.minsize(760, 520)
+        self.geometry("1120x760")
+        self.minsize(840, 760)
         self.theme_mode = "system"
         self.effective_theme = system_theme()
         self.colors = THEME_COLORS[self.effective_theme]
@@ -276,6 +448,7 @@ class Application(tk.Tk):
             name: tk.PhotoImage(file=resource_dir / "assets" / f"ui-{name}.png")
             for name in ("folder", "images", "video", "sparkle", "play", "terminal", "info")
         }
+        self.ui_icons["settings"] = self._create_settings_icon()
         self.iconphoto(True, self.logo_image)
         detected = system_language()
         self.language_name = tk.StringVar(value=next(name for name, code in LANGUAGES.items() if code == detected))
@@ -301,14 +474,30 @@ class Application(tk.Tk):
         self.enhancement_scale = tk.IntVar(value=2)
         self.enhancement_model = tk.StringVar(value="photo")
         self.widgets: dict[str, tk.Misc] = {}
+        self.widget_groups: dict[str, list[tk.Misc]] = {}
         self.details_visible = False
         self.processing = False
+        self.current_progress_status = ""
         self.run_generation = 0
         self._build_ui()
         self._translate()
         self.after_idle(self._update_native_titlebar)
         self.after(100, self._read_events)
         self.after(2000, self._watch_system_theme)
+
+    def _create_settings_icon(self) -> tk.PhotoImage:
+        """Create a crisp 20 px settings glyph matching the bundled navigation icons."""
+        icon = tk.PhotoImage(width=20, height=20)
+        for y in range(20):
+            for x in range(20):
+                dx, dy = x - 9.5, y - 9.5
+                radius = math.hypot(dx, dy)
+                angle = math.atan2(dy, dx)
+                tooth = abs(math.cos(angle * 4)) > 0.72
+                outer_radius = 9.2 if tooth else 7.8
+                if 3.4 <= radius <= outer_radius:
+                    icon.put(self.colors["accent"], (x, y))
+        return icon
 
     def _configure_style(self) -> None:
         """Apply a cross-platform Fluent/WinUI-inspired visual language."""
@@ -319,7 +508,17 @@ class Application(tk.Tk):
 
         style.configure("TFrame", background=colors["window"])
         style.configure("Card.TFrame", background=colors["surface"])
-        style.configure("Sidebar.TFrame", background=colors["surface"], relief="flat")
+        style.configure(
+            "Elevated.TFrame", background=colors.get("elevated", colors["surface_alt"]),
+            relief="flat",
+        )
+        style.configure(
+            "Sidebar.TFrame", background=colors.get("sidebar", colors["surface"]), relief="flat"
+        )
+        style.configure(
+            "Sidebar.TLabel", background=colors.get("sidebar", colors["surface"]),
+            foreground=colors["text"], font=("Segoe UI", 10),
+        )
         style.configure(
             "TLabel", background=colors["window"], foreground=colors["text"],
             font=("Segoe UI", 10),
@@ -333,8 +532,28 @@ class Application(tk.Tk):
             font=("Segoe UI", 9),
         )
         style.configure(
-            "Title.TLabel", background=colors["window"], foreground=colors["accent"],
-            font=("Segoe UI Semibold", 22),
+            "Elevated.TLabel", background=colors.get("elevated", colors["surface_alt"]),
+            foreground=colors["text"], font=("Segoe UI", 10),
+        )
+        style.configure(
+            "Muted.Elevated.TLabel", background=colors.get("elevated", colors["surface_alt"]),
+            foreground=colors["muted"], font=("Segoe UI", 9),
+        )
+        style.configure(
+            "Title.TLabel", background=colors["window"], foreground=colors["text"],
+            font=("Segoe UI Semibold", 24),
+        )
+        style.configure(
+            "Subtitle.TLabel", background=colors["window"], foreground=colors["muted"],
+            font=("Segoe UI", 10),
+        )
+        style.configure(
+            "Section.Card.TLabel", background=colors["surface"], foreground=colors["text"],
+            font=("Segoe UI Semibold", 12),
+        )
+        style.configure(
+            "Accent.Card.TLabel", background=colors["surface"], foreground=colors["accent"],
+            font=("Segoe UI Semibold", 10),
         )
         style.configure(
             "Card.TLabelframe", background=colors["surface"], bordercolor=colors["border"],
@@ -355,7 +574,7 @@ class Application(tk.Tk):
         )
         style.configure(
             "Accent.TButton", background=colors["accent"], foreground=colors["accent_text"],
-            bordercolor=colors["accent"], font=("Segoe UI Semibold", 10), padding=(18, 8),
+            bordercolor=colors["accent"], font=("Segoe UI Semibold", 10), padding=(18, 10),
         )
         style.map(
             "Accent.TButton",
@@ -388,9 +607,18 @@ class Application(tk.Tk):
         )
         style.configure(
             "TCheckbutton", background=colors["surface"], foreground=colors["text"],
-            font=("Segoe UI", 10), padding=(0, 3),
+            font=("Segoe UI Semibold", 10), padding=(0, 3),
         )
         style.map("TCheckbutton", background=[("active", colors["surface"])])
+        style.configure(
+            "Elevated.TCheckbutton",
+            background=colors.get("elevated", colors["surface_alt"]),
+            foreground=colors["text"], font=("Segoe UI Semibold", 10), padding=(0, 3),
+        )
+        style.map(
+            "Elevated.TCheckbutton",
+            background=[("active", colors.get("elevated", colors["surface_alt"]))],
+        )
         style.configure(
             "TRadiobutton", background=colors["surface"], foreground=colors["text"],
             font=("Segoe UI", 10), padding=(0, 3),
@@ -436,6 +664,47 @@ class Application(tk.Tk):
             borderwidth=0, relief="flat", padding=(14, 11), anchor="w",
             font=("Segoe UI Semibold", 10),
         )
+        sidebar_color = colors.get("sidebar", colors["surface"])
+        style.configure("Sidebar.TButton", background=sidebar_color)
+        style.configure("Selected.Sidebar.TButton", background=colors["selection"])
+        style.map(
+            "Selected.Sidebar.TButton",
+            background=[("active", colors["selection"]), ("pressed", colors["control_pressed"])],
+            foreground=[("active", colors["accent"])],
+        )
+        style.configure(
+            "Settings.Sidebar.TButton",
+            background=sidebar_color, foreground=colors["text"],
+            borderwidth=0, relief="flat", padding=(14, 16), anchor="w",
+            font=("Segoe UI Semibold", 11),
+        )
+        style.map(
+            "Settings.Sidebar.TButton",
+            background=[("active", colors["control_hover"]), ("pressed", colors["control_pressed"])],
+        )
+        style.configure(
+            "Selected.Settings.Sidebar.TButton",
+            background=colors["selection"], foreground=colors["accent"],
+            borderwidth=0, relief="flat", padding=(14, 16), anchor="w",
+            font=("Segoe UI Semibold", 11),
+        )
+        style.map(
+            "Selected.Settings.Sidebar.TButton",
+            background=[("active", colors["selection"]), ("pressed", colors["control_pressed"])],
+            foreground=[("active", colors["accent"])],
+        )
+        style.configure(
+            "Choice.TRadiobutton", background=colors["surface_alt"], foreground=colors["text"],
+            font=("Segoe UI Semibold", 10), padding=(10, 8),
+        )
+        style.map(
+            "Choice.TRadiobutton",
+            background=[("active", colors["control_hover"]), ("selected", colors["selection"])],
+            foreground=[("selected", colors["accent"])],
+        )
+        style.configure(
+            "Horizontal.TScale", background=colors["surface"], troughcolor=colors["progress_trough"],
+        )
         style.configure(
             "Accent.Horizontal.TProgressbar", background=colors["accent"],
             troughcolor=colors["progress_trough"], borderwidth=0, thickness=5,
@@ -454,6 +723,7 @@ class Application(tk.Tk):
 
     def _widget(self, key: str, widget: tk.Misc) -> tk.Misc:
         self.widgets[key] = widget
+        self.widget_groups.setdefault(key, []).append(widget)
         return widget
 
     def _build_ui(self) -> None:
@@ -464,15 +734,27 @@ class Application(tk.Tk):
         shell.columnconfigure(1, weight=1)
         shell.rowconfigure(0, weight=1)
 
-        self.sidebar = ttk.Frame(shell, style="Sidebar.TFrame", width=190)
+        self.sidebar = ttk.Frame(shell, style="Sidebar.TFrame", width=228)
         self.sidebar.grid(row=0, column=0, sticky="ns")
         self.sidebar.grid_propagate(False)
         self.sidebar.columnconfigure(0, weight=1)
-        self.sidebar.rowconfigure(4, weight=1)
+        self.sidebar.rowconfigure(5, weight=1)
+        brand = ttk.Frame(self.sidebar, style="Sidebar.TFrame")
+        self.sidebar_brand = brand
+        brand.grid(row=0, column=0, sticky="ew", padx=12, pady=(16, 18))
+        brand.columnconfigure(1, weight=1)
+        ttk.Label(brand, image=self.header_logo, style="Sidebar.TLabel").grid(
+            row=0, column=0, padx=(2, 10)
+        )
+        self.sidebar_brand_text = ttk.Label(
+            brand, text="Similaris", style="Sidebar.TLabel",
+            font=("Segoe UI Semibold", 15),
+        )
+        self.sidebar_brand_text.grid(row=0, column=1, sticky="w")
         self.hamburger_button = ttk.Button(
             self.sidebar, text="☰", command=self._toggle_sidebar, style="Sidebar.TButton", width=3,
         )
-        self.hamburger_button.grid(row=0, column=0, sticky="ew", padx=4, pady=(6, 10))
+        self.hamburger_button.grid(row=1, column=0, sticky="ew", padx=8, pady=(0, 10))
         self.section_buttons = {
             "images": ttk.Button(
                 self.sidebar, command=lambda: self._show_section("images"),
@@ -488,20 +770,27 @@ class Application(tk.Tk):
             ),
             "settings": ttk.Button(
                 self.sidebar, command=lambda: self._show_section("settings"),
-                style="Sidebar.TButton", text="⚙", compound="left",
+                style="Settings.Sidebar.TButton", image=self.ui_icons["settings"],
+                compound="left",
             ),
         }
-        self.section_buttons["images"].grid(row=1, column=0, sticky="ew", padx=4, pady=2)
-        self.section_buttons["convert"].grid(row=2, column=0, sticky="ew", padx=4, pady=2)
-        self.section_buttons["enhance"].grid(row=3, column=0, sticky="ew", padx=4, pady=2)
-        self.section_buttons["settings"].grid(row=5, column=0, sticky="ew", padx=4, pady=2)
+        self.section_buttons["images"].grid(row=2, column=0, sticky="ew", padx=8, pady=3)
+        self.section_buttons["convert"].grid(row=3, column=0, sticky="ew", padx=8, pady=3)
+        self.section_buttons["enhance"].grid(row=4, column=0, sticky="ew", padx=8, pady=3)
+        self.section_buttons["settings"].grid(row=6, column=0, sticky="ew", padx=8, pady=(3, 14))
+        navigation_keys = {
+            "images": "nav_organize", "convert": "nav_convert",
+            "enhance": "nav_enhance", "settings": "settings",
+        }
+        for name, button in self.section_buttons.items():
+            Tooltip(button, lambda key=navigation_keys[name]: self.tr(key))
 
         page_host = ttk.Frame(shell)
         page_host.grid(row=0, column=1, sticky="nsew")
         page_host.columnconfigure(0, weight=1)
         page_host.rowconfigure(0, weight=1)
-        home = ttk.Frame(page_host, padding=(22, 16, 22, 18))
-        settings = ttk.Frame(page_host, padding=(28, 22, 28, 24))
+        home = ttk.Frame(page_host, padding=(30, 24, 30, 24))
+        settings = ttk.Frame(page_host, padding=(32, 28, 32, 28))
         self.section_pages = {"home": home, "settings": settings}
         for page in self.section_pages.values():
             page.grid(row=0, column=0, sticky="nsew")
@@ -510,63 +799,87 @@ class Application(tk.Tk):
         home.columnconfigure(0, weight=1)
         home.rowconfigure(4, weight=1)
         header = ttk.Frame(home)
-        header.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        header.grid(row=0, column=0, sticky="ew", pady=(0, 20))
         self.page_icon = ttk.Label(header, image=self.ui_icons["images"])
         self.page_icon.pack(side="left", padx=(0, 12))
         heading_text = ttk.Frame(header)
         heading_text.pack(side="left", fill="x", expand=True)
         self.page_title = ttk.Label(heading_text, style="Title.TLabel")
         self.page_title.pack(anchor="w")
-        self.page_description = ttk.Label(heading_text)
+        self.page_description = ttk.Label(
+            heading_text, style="Subtitle.TLabel", wraplength=720, justify="left"
+        )
         self.page_description.pack(anchor="w", pady=(2, 0))
 
         self.selection_area = ttk.Frame(home)
         self.selection_area.grid(row=1, column=0, sticky="ew")
         self.source_card = self._widget(
-            "folder", ttk.LabelFrame(self.selection_area, padding=12, style="Card.TLabelframe")
+            "folder", ttk.LabelFrame(self.selection_area, padding=16, style="Card.TLabelframe")
         )
+        self._widget(
+            "source_hint", ttk.Label(
+                self.source_card, style="Muted.Card.TLabel", wraplength=480, justify="left"
+            )
+        ).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 10))
         self.source_summary = ttk.Label(
             self.source_card, textvariable=self.source_display, style="Muted.Card.TLabel",
-            anchor="w", width=42,
+            anchor="w",
         )
-        self.source_summary.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
+        self.source_summary.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(0, 12))
+        Tooltip(self.source_summary, self._source_tooltip_text)
         self.source_card.columnconfigure(0, weight=1)
         self._widget(
             "select", ttk.Button(
                 self.source_card, command=self._select_folder, image=self.ui_icons["folder"],
                 compound="left",
             )
-        ).grid(row=1, column=0, sticky="w", padx=(0, 6))
+        ).grid(row=2, column=0, sticky="w", padx=(0, 6))
         self._widget(
             "select_files", ttk.Button(
                 self.source_card, command=self._select_files,
                 image=self.ui_icons["images"], compound="left",
             )
-        ).grid(row=1, column=1, sticky="w")
+        ).grid(row=2, column=1, sticky="w", padx=(0, 6))
+        self._widget(
+            "clear", ttk.Button(self.source_card, command=self._clear_source)
+        ).grid(row=2, column=2, sticky="e")
 
         self.destination_card = self._widget(
             "destination", ttk.LabelFrame(
-                self.selection_area, padding=12, style="Card.TLabelframe"
+                self.selection_area, padding=16, style="Card.TLabelframe"
             )
         )
+        self._widget(
+            "destination_hint", ttk.Label(
+                self.destination_card, style="Muted.Card.TLabel", wraplength=360, justify="left"
+            )
+        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
         self.destination_summary = ttk.Label(
             self.destination_card, textvariable=self.destination_display,
-            style="Muted.Card.TLabel", anchor="w", width=30,
+            style="Muted.Card.TLabel", anchor="w",
         )
-        self.destination_summary.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        self.destination_summary.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 12))
+        Tooltip(
+            self.destination_summary,
+            lambda: self.output_folders.get(self.current_operation, "") or self.tr("no_destination"),
+        )
         self.destination_card.columnconfigure(0, weight=1)
         self._widget(
             "select_destination", ttk.Button(
                 self.destination_card, command=self._select_destination,
                 image=self.ui_icons["folder"], compound="left",
             )
-        ).grid(row=1, column=0, sticky="w")
+        ).grid(row=2, column=0, sticky="w")
+        self._widget(
+            "use_default_destination",
+            ttk.Button(self.destination_card, command=self._use_default_destination),
+        ).grid(row=2, column=1, sticky="e")
         self._layout_selection(False)
 
-        operations_shell = ttk.Frame(home, style="Card.TFrame")
-        operations_shell.grid(row=2, column=0, sticky="ew", pady=10)
-        operations_shell.columnconfigure(0, weight=1)
-        page_container = ttk.Frame(operations_shell, style="Card.TFrame")
+        self.operations_shell = ttk.Frame(home, style="Card.TFrame")
+        self.operations_shell.grid(row=2, column=0, sticky="ew", pady=10)
+        self.operations_shell.columnconfigure(0, weight=1)
+        page_container = ttk.Frame(self.operations_shell, style="Card.TFrame")
         page_container.grid(row=0, column=0, sticky="ew")
         page_container.columnconfigure(0, weight=1)
         self.images_tab = ttk.Frame(page_container, padding=18, style="Card.TFrame")
@@ -580,16 +893,63 @@ class Application(tk.Tk):
         self.current_operation = "images"
         self._show_operation(self.current_operation)
 
-        self._widget("duplicates", ttk.Checkbutton(self.images_tab, variable=self.find_duplicates)).grid(row=0, column=0, sticky="w")
-        self._widget("rename", ttk.Checkbutton(self.images_tab, variable=self.rename_images)).grid(row=0, column=1, sticky="w", padx=(35, 0))
-        sensitivity = ttk.Frame(self.images_tab, style="Card.TFrame")
-        sensitivity.grid(row=1, column=0, columnspan=2, sticky="w", pady=(12, 0))
-        self._widget("sensitivity", ttk.Label(sensitivity, style="Card.TLabel")).pack(side="left")
-        self.sensitivity_box = ttk.Combobox(sensitivity, state="readonly", width=16)
-        self.sensitivity_box.pack(side="left", padx=5)
-        self.sensitivity_box.bind("<<ComboboxSelected>>", self._sensitivity_selected)
-        self.sensitivity_help = ttk.Label(sensitivity, style="Muted.Card.TLabel")
-        self.sensitivity_help.pack(side="left", padx=(8, 0))
+        self.images_tab.columnconfigure((0, 1), weight=1, uniform="features")
+        self.duplicate_card = ttk.Frame(self.images_tab, padding=16, style="Elevated.TFrame")
+        self.duplicate_card.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+        self._widget(
+            "duplicates_title", ttk.Checkbutton(
+                self.duplicate_card, variable=self.find_duplicates,
+                command=self._refresh_feature_states, style="Elevated.TCheckbutton",
+            )
+        ).grid(row=0, column=0, sticky="w")
+        self._widget(
+            "duplicates_description", ttk.Label(
+                self.duplicate_card, style="Muted.Elevated.TLabel", wraplength=290, justify="left"
+            )
+        ).grid(row=1, column=0, sticky="w", pady=(2, 14))
+        self._widget(
+            "sensitivity_title", ttk.Label(
+                self.duplicate_card, style="Elevated.TLabel", font=("Segoe UI Semibold", 10)
+            )
+        ).grid(row=2, column=0, sticky="w", pady=(0, 6))
+        sensitivity = ttk.Frame(self.duplicate_card, style="Elevated.TFrame")
+        sensitivity.grid(row=3, column=0, sticky="ew")
+        sensitivity.columnconfigure((0, 1), weight=1, uniform="sensitivity")
+        self.sensitivity_buttons: dict[str, ttk.Radiobutton] = {}
+        for index, value in enumerate(("conservative", "balanced", "sensitive")):
+            row, column = divmod(index, 2)
+            button = ttk.Radiobutton(
+                sensitivity, variable=self.sensitivity, value=value,
+                style="Choice.TRadiobutton", command=self._refresh_sensitivity_cards,
+            )
+            button.grid(
+                row=row, column=column, columnspan=2 if index == 2 else 1,
+                sticky="ew", padx=(0, 3) if column == 0 and index != 2 else 0,
+                pady=(3, 0) if row else 0,
+            )
+            self.sensitivity_buttons[value] = button
+        self.sensitivity_help = ttk.Label(
+            self.duplicate_card, style="Muted.Elevated.TLabel", wraplength=290, justify="left"
+        )
+        self.sensitivity_help.grid(row=4, column=0, sticky="w", pady=(8, 0))
+
+        self.rename_card = ttk.Frame(self.images_tab, padding=16, style="Elevated.TFrame")
+        self.rename_card.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+        self._widget(
+            "rename_title", ttk.Checkbutton(
+                self.rename_card, variable=self.rename_images, style="Elevated.TCheckbutton"
+            )
+        ).grid(row=0, column=0, sticky="w")
+        self._widget(
+            "rename_description", ttk.Label(
+                self.rename_card, style="Muted.Elevated.TLabel", wraplength=290, justify="left"
+            )
+        ).grid(row=1, column=0, sticky="w", pady=(2, 14))
+        self.rename_preview = ttk.Label(
+            self.rename_card, text='img (1).jpg  ·  img (2).jpg  ·  img (3).jpg',
+            style="Elevated.TLabel",
+        )
+        self.rename_preview.grid(row=2, column=0, sticky="w")
 
         conversion_navigation = ttk.Frame(self.convert_tab, style="Card.TFrame", padding=(8, 7))
         conversion_navigation.grid(row=0, column=0, sticky="ew")
@@ -613,38 +973,97 @@ class Application(tk.Tk):
         self.current_conversion_tab = "photos"
         self._show_conversion_tab("photos")
 
-        self._widget("images", ttk.Checkbutton(self.photo_conversion_tab, variable=self.convert_images)).grid(row=0, column=0, sticky="w")
+        self._widget(
+            "image_conversion_title", ttk.Label(
+                self.photo_conversion_tab, style="Section.Card.TLabel"
+            )
+        ).grid(row=0, column=0, sticky="w")
+        self._widget(
+            "image_conversion_description", ttk.Label(
+                self.photo_conversion_tab, style="Muted.Card.TLabel", wraplength=680
+            )
+        ).grid(row=1, column=0, sticky="w", pady=(3, 16))
         image_quality = ttk.Frame(self.photo_conversion_tab, style="Card.TFrame")
-        image_quality.grid(row=1, column=0, sticky="w", pady=(12, 0))
-        self._widget("jpg", ttk.Label(image_quality, style="Card.TLabel")).pack(side="left")
-        ttk.Spinbox(image_quality, from_=1, to=100, width=5, textvariable=self.jpg_quality).pack(side="left", padx=5)
+        image_quality.grid(row=2, column=0, sticky="ew")
+        image_quality.columnconfigure(1, weight=1)
+        self._widget("output_format", ttk.Label(image_quality, style="Card.TLabel")).grid(row=0, column=0, sticky="w")
+        ttk.Label(image_quality, text="JPG", style="Accent.Card.TLabel").grid(row=0, column=1, sticky="w", padx=(18, 0))
+        self._widget("quality", ttk.Label(image_quality, style="Card.TLabel")).grid(row=1, column=0, sticky="w", pady=(16, 0))
+        self.jpg_scale = ttk.Scale(
+            image_quality, from_=1, to=100, variable=self.jpg_quality,
+            command=lambda _value: self.jpg_quality_value.configure(text=str(self.jpg_quality.get())),
+        )
+        self.jpg_scale.grid(row=1, column=1, sticky="ew", padx=(18, 10), pady=(16, 0))
+        self.jpg_quality_value = ttk.Label(image_quality, text=str(self.jpg_quality.get()), style="Card.TLabel", width=3)
+        self.jpg_quality_value.grid(row=1, column=2, pady=(16, 0))
+        self._widget("quality_help", ttk.Label(image_quality, style="Muted.Card.TLabel")).grid(row=2, column=1, sticky="w", padx=(18, 0), pady=(4, 0))
+        self._widget("keep_originals", ttk.Label(self.photo_conversion_tab, style="Muted.Card.TLabel")).grid(row=3, column=0, sticky="w", pady=(18, 0))
 
-        self._widget("video_only", ttk.Label(self.video_conversion_tab, style="Card.TLabel", font=("Segoe UI Semibold", 11))).grid(row=0, column=0, sticky="w")
-        self._widget("video_details", ttk.Label(self.video_conversion_tab, wraplength=700, style="Muted.Card.TLabel")).grid(row=1, column=0, sticky="w", pady=(4, 12))
-        self._widget("videos", ttk.Checkbutton(self.video_conversion_tab, variable=self.convert_videos)).grid(row=2, column=0, sticky="w")
+        self._widget("video_conversion_title", ttk.Label(self.video_conversion_tab, style="Section.Card.TLabel")).grid(row=0, column=0, sticky="w")
+        self._widget("video_conversion_description", ttk.Label(self.video_conversion_tab, wraplength=700, style="Muted.Card.TLabel")).grid(row=1, column=0, sticky="w", pady=(3, 16))
         video_quality = ttk.Frame(self.video_conversion_tab, style="Card.TFrame")
-        video_quality.grid(row=3, column=0, sticky="w", pady=(12, 0))
-        self._widget("video", ttk.Label(video_quality, style="Card.TLabel")).pack(side="left")
-        ttk.Spinbox(video_quality, from_=0, to=51, width=5, textvariable=self.video_quality).pack(side="left", padx=5)
-        self._widget("lower", ttk.Label(video_quality, style="Muted.Card.TLabel")).pack(side="left")
+        video_quality.grid(row=2, column=0, sticky="ew")
+        video_quality.columnconfigure(1, weight=1)
+        self._widget("output_format", ttk.Label(video_quality, style="Card.TLabel")).grid(row=0, column=0, sticky="w")
+        ttk.Label(video_quality, text="MP4 · H.264/AAC", style="Accent.Card.TLabel").grid(row=0, column=1, sticky="w", padx=(18, 0))
+        self._widget("quality", ttk.Label(video_quality, style="Card.TLabel")).grid(row=1, column=0, sticky="w", pady=(16, 0))
+        self.video_scale = ttk.Scale(
+            video_quality, from_=0, to=51, variable=self.video_quality,
+            command=lambda _value: self.video_quality_value.configure(text=str(self.video_quality.get())),
+        )
+        self.video_scale.grid(row=1, column=1, sticky="ew", padx=(18, 10), pady=(16, 0))
+        self.video_quality_value = ttk.Label(video_quality, text=str(self.video_quality.get()), style="Card.TLabel", width=3)
+        self.video_quality_value.grid(row=1, column=2, pady=(16, 0))
+        self._widget("lower", ttk.Label(video_quality, style="Muted.Card.TLabel")).grid(row=2, column=1, sticky="w", padx=(18, 0), pady=(4, 0))
+        self._widget("keep_originals", ttk.Label(self.video_conversion_tab, style="Muted.Card.TLabel")).grid(row=3, column=0, sticky="w", pady=(18, 0))
 
-        self._widget("enhance_details", ttk.Label(self.enhance_tab, wraplength=760, style="Muted.Card.TLabel")).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 12))
-        self._widget("enhance", ttk.Checkbutton(self.enhance_tab, variable=self.enhance_images)).grid(row=1, column=0, columnspan=2, sticky="w")
+        self._widget("hardware_recommendation", ttk.Label(self.enhance_tab, wraplength=760, style="Muted.Card.TLabel")).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 16))
         enhance_options = ttk.Frame(self.enhance_tab, style="Card.TFrame")
-        enhance_options.grid(row=2, column=0, columnspan=2, sticky="w", pady=(12, 0))
-        self._widget("scale", ttk.Label(enhance_options, style="Card.TLabel")).pack(side="left")
-        ttk.Combobox(enhance_options, textvariable=self.enhancement_scale, values=(2, 3, 4), state="readonly", width=4).pack(side="left", padx=(5, 24))
-        self._widget("model", ttk.Label(enhance_options, style="Card.TLabel")).pack(side="left")
-        self.enhancement_model_box = ttk.Combobox(enhance_options, state="readonly", width=16)
-        self.enhancement_model_box.pack(side="left", padx=5)
-        self.enhancement_model_box.bind("<<ComboboxSelected>>", self._enhancement_model_selected)
+        enhance_options.grid(row=1, column=0, columnspan=2, sticky="ew")
+        self._widget("enlargement", ttk.Label(enhance_options, style="Card.TLabel")).grid(row=0, column=0, sticky="w", padx=(0, 14))
+        self.scale_buttons = {}
+        for column, scale in enumerate((2, 3, 4), 1):
+            button = ttk.Radiobutton(
+                enhance_options, text=f"{scale}×", variable=self.enhancement_scale,
+                value=scale, style="Choice.TRadiobutton",
+            )
+            button.grid(row=0, column=column, padx=(0, 4))
+            self.scale_buttons[scale] = button
+        self._widget("image_type", ttk.Label(enhance_options, style="Card.TLabel")).grid(row=1, column=0, sticky="w", padx=(0, 14), pady=(14, 0))
+        self.model_buttons = {}
+        for column, model in enumerate(("photo", "illustration"), 1):
+            button = ttk.Radiobutton(
+                enhance_options, variable=self.enhancement_model, value=model,
+                style="Choice.TRadiobutton",
+            )
+            button.grid(row=1, column=column, sticky="ew", padx=(0, 4), pady=(14, 0))
+            self.model_buttons[model] = button
+        privacy = ttk.Frame(self.enhance_tab, padding=14, style="Elevated.TFrame")
+        privacy.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(18, 0))
+        self._widget("local_processing_title", ttk.Label(privacy, style="Elevated.TLabel", font=("Segoe UI Semibold", 10))).grid(row=0, column=0, sticky="w")
+        self._widget("local_processing_message", ttk.Label(privacy, style="Muted.Elevated.TLabel", wraplength=720, justify="left")).grid(row=1, column=0, sticky="w", pady=(3, 0))
 
-        mode = self._widget("mode", ttk.LabelFrame(self.images_tab, padding=12, style="Card.TLabelframe"))
-        mode.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(12, 0))
-        self._widget("simulate", ttk.Radiobutton(mode, variable=self.apply_changes, value=False)).pack(side="left")
-        self._widget("apply", ttk.Radiobutton(mode, variable=self.apply_changes, value=True)).pack(side="left", padx=25)
-        self.action_bar = ttk.Frame(home)
-        self.action_bar.grid(row=3, column=0, sticky="ew", pady=(0, 10))
+        mode = ttk.Frame(self.images_tab, style="Card.TFrame")
+        mode.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(16, 0))
+        mode.columnconfigure((0, 1), weight=1, uniform="mode")
+        simulation = ttk.Frame(mode, padding=13, style="Elevated.TFrame")
+        simulation.grid(row=0, column=0, sticky="ew", padx=(0, 6))
+        self._widget("simulation_title", ttk.Radiobutton(
+            simulation, variable=self.apply_changes, value=False, style="Choice.TRadiobutton"
+        )).grid(row=0, column=0, sticky="w")
+        self._widget("simulation_description", ttk.Label(
+            simulation, style="Muted.Elevated.TLabel", wraplength=290
+        )).grid(row=1, column=0, sticky="w", pady=(2, 0))
+        apply_mode = ttk.Frame(mode, padding=13, style="Elevated.TFrame")
+        apply_mode.grid(row=0, column=1, sticky="ew", padx=(6, 0))
+        self._widget("apply_title", ttk.Radiobutton(
+            apply_mode, variable=self.apply_changes, value=True, style="Choice.TRadiobutton"
+        )).grid(row=0, column=0, sticky="w")
+        self._widget("apply_description", ttk.Label(
+            apply_mode, style="Muted.Elevated.TLabel", wraplength=290
+        )).grid(row=1, column=0, sticky="w", pady=(2, 0))
+        self.action_bar = ttk.Frame(home, padding=12, style="Elevated.TFrame")
+        self.action_bar.grid(row=3, column=0, sticky="ew", pady=(0, 12))
         self.action_bar.columnconfigure(1, weight=1)
         self.start_button = self._widget(
             "start", ttk.Button(
@@ -653,8 +1072,10 @@ class Application(tk.Tk):
             )
         )
         self.progress = ttk.Progressbar(self.action_bar, mode="determinate", maximum=100, value=0, style="Accent.Horizontal.TProgressbar")
-        self.progress_percent = ttk.Label(self.action_bar, text="—", width=5, anchor="e")
-        self.status = ttk.Label(self.action_bar)
+        self.progress_percent = ttk.Label(
+            self.action_bar, text="—", width=5, anchor="e", style="Elevated.TLabel"
+        )
+        self.status = ttk.Label(self.action_bar, style="Muted.Elevated.TLabel")
         self.details_button = ttk.Button(
             self.action_bar, command=self._toggle_details, image=self.ui_icons["terminal"], compound="left"
         )
@@ -663,7 +1084,22 @@ class Application(tk.Tk):
         self.results_box = self._widget("results", ttk.LabelFrame(home, padding=8, style="Card.TLabelframe"))
         self.results_box.grid(row=4, column=0, sticky="nsew")
         self.results_box.columnconfigure(0, weight=1)
-        self.results_box.rowconfigure(0, weight=1)
+        self.results_box.rowconfigure(1, weight=1)
+        log_actions = ttk.Frame(self.results_box, style="Card.TFrame")
+        log_actions.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        log_actions.columnconfigure(0, weight=1)
+        self._widget(
+            "open_destination", ttk.Button(
+                log_actions, command=self._open_destination, image=self.ui_icons["folder"],
+                compound="left",
+            )
+        ).grid(row=0, column=1, padx=(0, 6))
+        self._widget(
+            "copy_log", ttk.Button(
+                log_actions, command=self._copy_log, image=self.ui_icons["terminal"],
+                compound="left",
+            )
+        ).grid(row=0, column=2)
         self.log = tk.Text(
             self.results_box, wrap="word", state="disabled", font=("Cascadia Mono", 9),
             background=self.colors["surface_alt"], foreground=self.colors["text"],
@@ -672,8 +1108,11 @@ class Application(tk.Tk):
         )
         scrollbar = ttk.Scrollbar(self.results_box, orient="vertical", command=self.log.yview)
         self.log.configure(yscrollcommand=scrollbar.set)
-        self.log.grid(row=0, column=0, sticky="nsew")
-        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.log.grid(row=1, column=0, sticky="nsew")
+        scrollbar.grid(row=1, column=1, sticky="ns")
+        self.log.configure(state="normal")
+        self.log.insert("1.0", self.tr("details_empty"))
+        self.log.configure(state="disabled")
         self.results_box.grid_remove()
         home.rowconfigure(4, weight=0)
 
@@ -760,20 +1199,27 @@ class Application(tk.Tk):
 
     def _translate(self) -> None:
         self.title(self.tr("title"))
-        for key, widget in self.widgets.items():
-            widget.configure(text=self.tr(key))
+        for key, widgets in self.widget_groups.items():
+            for widget in widgets:
+                widget.configure(text=self.tr(key))
         self.conversion_buttons["photos"].configure(text=self.tr("photos_tab"))
         self.conversion_buttons["videos"].configure(text=self.tr("videos_tab"))
         self.settings_tab_buttons["appearance"].configure(text=self.tr("appearance_tab"))
         self.settings_tab_buttons["licenses"].configure(text=self.tr("licenses_tab"))
         self.settings_tab_buttons["support"].configure(text=self.tr("support_tab"))
-        sensitivity_values = [self.tr(name) for name in ("conservative", "balanced", "sensitive")]
-        self.sensitivity_box.configure(values=sensitivity_values)
-        self.sensitivity_box.current(("conservative", "balanced", "sensitive").index(self.sensitivity.get()))
+        for name, button in self.sensitivity_buttons.items():
+            button.configure(text=self.tr(name))
         self.sensitivity_help.configure(text=self.tr(f"sensitivity_{self.sensitivity.get()}"))
-        enhancement_models = [self.tr(name) for name in ("photo", "illustration")]
-        self.enhancement_model_box.configure(values=enhancement_models)
-        self.enhancement_model_box.current(("photo", "illustration").index(self.enhancement_model.get()))
+        for name, button in self.model_buttons.items():
+            button.configure(text=self.tr(name))
+        current_log = self.log.get("1.0", "end-1c").strip()
+        if not current_log or current_log in {
+            values["details_empty"] for values in TEXT.values()
+        }:
+            self.log.configure(state="normal")
+            self.log.delete("1.0", "end")
+            self.log.insert("1.0", self.tr("details_empty"))
+            self.log.configure(state="disabled")
         self.details_button.configure(text=self.tr("hide_details" if self.details_visible else "show_details"))
         self._set_sidebar(self.sidebar_expanded)
         theme_modes = ("system", "light", "dark")
@@ -783,9 +1229,10 @@ class Application(tk.Tk):
         if self.start_button.instate(["disabled"]):
             self.status.configure(text=self.tr("running"))
         else:
-            self.status.configure(text=self.tr("ready"))
+            self._update_ready_status()
         if self.current_section in {"images", "convert", "enhance"}:
             self._load_source_state()
+        self._refresh_feature_states()
 
     def _theme_selected(self, _event: object = None) -> None:
         self.theme_mode = ("system", "light", "dark")[self.theme_box.current()]
@@ -859,10 +1306,10 @@ class Application(tk.Tk):
             filetypes = [
                 (self.tr("photos_tab"), image_patterns),
                 (self.tr("videos_tab"), video_patterns),
-                ("All files", "*.*"),
+                (self.tr("all_files"), "*.*"),
             ]
         else:
-            filetypes = [(self.tr("images_tab"), image_patterns), ("All files", "*.*")]
+            filetypes = [(self.tr("images_tab"), image_patterns), (self.tr("all_files"), "*.*")]
         selected = [Path(path) for path in filedialog.askopenfilenames(filetypes=filetypes)]
         if not selected:
             return
@@ -882,6 +1329,32 @@ class Application(tk.Tk):
             self.destination.set(selected)
             self.output_folders[self.current_operation] = selected
             self._refresh_selection_summaries()
+
+    def _clear_source(self) -> None:
+        operation = self.current_operation
+        self.source_kinds[operation] = "folder"
+        self.source_folders[operation] = ""
+        self.source_files[operation] = []
+        self.output_folders[operation] = ""
+        self.folder.set("")
+        self.destination.set("")
+        self._refresh_selection_summaries()
+
+    def _use_default_destination(self) -> None:
+        operation = self.current_operation
+        if self.source_kinds[operation] == "files" and self.source_files[operation]:
+            base = self.source_files[operation][0].parent
+        elif self.source_folders[operation]:
+            base = Path(self.source_folders[operation])
+        else:
+            self.output_folders[operation] = ""
+            self.destination.set("")
+            self._refresh_selection_summaries()
+            return
+        destination = str(base / self._default_output_name())
+        self.output_folders[operation] = destination
+        self.destination.set(destination)
+        self._refresh_selection_summaries()
 
     def _default_output_name(self) -> str:
         return {"images": "duplicates", "convert": "converted", "enhance": "enhanced"}[
@@ -910,6 +1383,12 @@ class Application(tk.Tk):
             return value
         return f"…{value[-(limit - 1):]}"
 
+    def _source_tooltip_text(self) -> str:
+        operation = self.current_operation
+        if self.source_kinds[operation] == "files":
+            return "\n".join(str(path) for path in self.source_files[operation])
+        return self.source_folders[operation] or self.tr("no_source")
+
     def _refresh_selection_summaries(self) -> None:
         operation = self.current_operation
         if self.source_kinds[operation] == "files":
@@ -920,11 +1399,28 @@ class Application(tk.Tk):
             source = f"{self.tr('selected_files').format(count=len(files))}  ·  {names}"
         else:
             source = self.source_folders[operation]
+            if source:
+                extensions = (
+                    photo_organizer.IMAGE_EXTENSIONS | photo_organizer.VIDEO_EXTENSIONS
+                    if operation == "convert" else photo_organizer.IMAGE_EXTENSIONS
+                )
+                try:
+                    count = sum(
+                        path.is_file() and path.suffix.lower() in extensions
+                        for path in Path(source).iterdir()
+                    )
+                    source = (
+                        f"{self._compact_path(source, 44)}  ·  "
+                        f"{self.tr('selected_source_count').format(count=count)}"
+                    )
+                except OSError:
+                    pass
         self.source_display.set(self._compact_path(source) if source else self.tr("no_source"))
         destination = self.output_folders[operation]
         self.destination_display.set(
             self._compact_path(destination) if destination else self.tr("no_destination")
         )
+        self._update_ready_status()
 
     def _show_section(self, section: str) -> None:
         self._save_source_state()
@@ -936,16 +1432,30 @@ class Application(tk.Tk):
             self._show_operation(section)
             self._load_source_state()
         for name, button in self.section_buttons.items():
-            button.configure(style="Selected.Sidebar.TButton" if name == section else "Sidebar.TButton")
+            if name == "settings":
+                style = (
+                    "Selected.Settings.Sidebar.TButton"
+                    if name == section else "Settings.Sidebar.TButton"
+                )
+            else:
+                style = "Selected.Sidebar.TButton" if name == section else "Sidebar.TButton"
+            button.configure(style=style)
 
     def _set_sidebar(self, expanded: bool) -> None:
         self.sidebar_expanded = expanded
-        self.sidebar.configure(width=190 if expanded else 56)
-        self.section_buttons["images"].configure(text=self.tr("images_tab") if expanded else "", compound="left")
-        self.section_buttons["convert"].configure(text=self.tr("convert_tab") if expanded else "", compound="left")
-        self.section_buttons["enhance"].configure(text=self.tr("enhance_tab") if expanded else "", compound="left")
+        self.sidebar.configure(width=228 if expanded else 68)
+        if expanded:
+            self.sidebar_brand.grid()
+            self.sidebar_brand_text.grid()
+        else:
+            self.sidebar_brand.grid_remove()
+            self.sidebar_brand_text.grid_remove()
+        self.section_buttons["images"].configure(text=self.tr("nav_organize") if expanded else "", compound="left")
+        self.section_buttons["convert"].configure(text=self.tr("nav_convert") if expanded else "", compound="left")
+        self.section_buttons["enhance"].configure(text=self.tr("nav_enhance") if expanded else "", compound="left")
         self.section_buttons["settings"].configure(
-            text=f"⚙  {self.tr('settings')}" if expanded else "⚙", image="",
+            text=self.tr("settings") if expanded else "",
+            image=self.ui_icons["settings"], compound="left",
         )
 
     def _toggle_sidebar(self) -> None:
@@ -987,11 +1497,28 @@ class Application(tk.Tk):
         compact = event.width < 900
         if compact and self.sidebar_expanded:
             self._set_sidebar(False)
-        self._layout_selection(event.width < 800)
-        self._layout_actions(event.width < 820)
+        self._layout_selection(event.width < 760)
+        self._layout_image_features(event.width < 800)
+        self._layout_actions(event.width < 900)
+
+    def _layout_image_features(self, stacked: bool) -> None:
+        self.duplicate_card.grid_forget()
+        self.rename_card.grid_forget()
+        mode = self.widgets["simulation_title"].master.master
+        mode.grid_forget()
+        if stacked:
+            self.duplicate_card.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+            self.rename_card.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+            mode.grid(row=2, column=0, columnspan=2, sticky="ew")
+        else:
+            self.duplicate_card.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+            self.rename_card.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+            mode.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(16, 0))
 
     def _show_operation(self, page: str) -> None:
         self.current_operation = page
+        if page == "enhance":
+            self.enhance_images.set(True)
         self.operation_pages[page].tkraise()
         self._update_page_header()
 
@@ -1025,8 +1552,30 @@ class Application(tk.Tk):
         if not opened:
             messagebox.showerror(self.tr("product"), self.tr("open_link_error"))
 
+    def _copy_log(self) -> None:
+        content = self.log.get("1.0", "end-1c")
+        self.clipboard_clear()
+        self.clipboard_append(content)
+
+    def _open_destination(self) -> None:
+        destination = Path(self.output_folders.get(self.current_operation, ""))
+        if not destination.is_dir():
+            messagebox.showerror(self.tr("product"), self.tr("open_destination_error"))
+            return
+        try:
+            if sys.platform == "win32":
+                os.startfile(destination)  # type: ignore[attr-defined]
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", str(destination)])
+            else:
+                subprocess.Popen(["xdg-open", str(destination)])
+        except OSError:
+            messagebox.showerror(self.tr("product"), self.tr("open_destination_error"))
+
     def _show_conversion_tab(self, page: str) -> None:
         self.current_conversion_tab = page
+        self.convert_images.set(page == "photos")
+        self.convert_videos.set(page == "videos")
         self.conversion_pages[page].tkraise()
         for name, button in self.conversion_buttons.items():
             button.configure(style="Selected.Nav.TButton" if name == page else "Nav.TButton")
@@ -1034,21 +1583,48 @@ class Application(tk.Tk):
     def _toggle_details(self) -> None:
         self.details_visible = not self.details_visible
         if self.details_visible:
+            self.selection_area.grid_remove()
+            self.operations_shell.grid_remove()
             self.main_frame.rowconfigure(4, weight=1, minsize=120)
             self.results_box.grid()
         else:
             self.results_box.grid_remove()
+            self.selection_area.grid()
+            self.operations_shell.grid()
             self.main_frame.rowconfigure(4, weight=0, minsize=0)
         self.details_button.configure(
             text="" if self.winfo_width() < 820 else self.tr("hide_details" if self.details_visible else "show_details")
         )
 
     def _sensitivity_selected(self, _event: object = None) -> None:
-        self.sensitivity.set(("conservative", "balanced", "sensitive")[self.sensitivity_box.current()])
         self.sensitivity_help.configure(text=self.tr(f"sensitivity_{self.sensitivity.get()}"))
 
+    def _refresh_sensitivity_cards(self) -> None:
+        self._sensitivity_selected()
+
+    def _refresh_feature_states(self) -> None:
+        state = "normal" if self.find_duplicates.get() else "disabled"
+        for button in self.sensitivity_buttons.values():
+            button.configure(state=state)
+        self.sensitivity_help.configure(
+            text=self.tr(f"sensitivity_{self.sensitivity.get()}")
+        )
+
+    def _update_ready_status(self) -> None:
+        if not hasattr(self, "status") or self.processing:
+            return
+        operation = self.current_operation
+        has_source = bool(
+            self.source_files[operation]
+            if self.source_kinds[operation] == "files"
+            else self.source_folders[operation]
+        )
+        key = f"ready_{operation}" if has_source else "select_source_begin"
+        self.status.configure(text=self.tr(key))
+
     def _enhancement_model_selected(self, _event: object = None) -> None:
-        self.enhancement_model.set(("photo", "illustration")[self.enhancement_model_box.current()])
+        if self.enhancement_model.get() not in {"photo", "illustration"}:
+            self.enhancement_model.set("photo")
 
     def _about(self) -> None:
         window = tk.Toplevel(self)
@@ -1151,6 +1727,7 @@ class Application(tk.Tk):
         self.progress_percent.configure(text="—")
         self.status.configure(text=self.tr("running"))
         self.processing = True
+        self.current_progress_status = ""
         self.run_generation += 1
         self.run_started_at = time.monotonic()
         self._update_elapsed_status(self.run_generation)
@@ -1181,7 +1758,8 @@ class Application(tk.Tk):
             return
         elapsed = max(0, int(time.monotonic() - self.run_started_at))
         minutes, seconds = divmod(elapsed, 60)
-        self.status.configure(text=f"{self.tr('running')} · {minutes:02d}:{seconds:02d}")
+        status = self.current_progress_status or self.tr("running")
+        self.status.configure(text=f"{status} · {minutes:02d}:{seconds:02d}")
         self.after(1000, lambda: self._update_elapsed_status(generation))
 
     def _read_events(self) -> None:
@@ -1195,9 +1773,12 @@ class Application(tk.Tk):
                     self.progress.stop()
                     self.progress.configure(mode="determinate", value=percentage)
                     self.progress_percent.configure(text=f"{percentage:.0f}%")
+                elif event == "status":
+                    self.current_progress_status = str(value)
                 elif event == "done":
                     self.progress.stop(); self.start_button.configure(state="normal")
                     self.processing = False
+                    self.current_progress_status = ""
                     code, duplicate_count = value
                     success = int(code) == 0
                     if success:

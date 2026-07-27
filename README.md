@@ -136,14 +136,18 @@ After building `dist\Similaris.exe`, create the x64 MSIX upload package from
 PowerShell on a computer with the Windows 10/11 SDK installed:
 
 ```powershell
+Copy-Item .env.example .env
+# Fill .env with the exact Product identity values from Partner Center.
 .\build_store_msix.ps1 -Version 0.1.0.0
 ```
 
 Upload the generated `dist\Similaris-Store-0.1.0.0-x64.msixupload` directly to
-Partner Center. Its manifest uses the official Store identity assigned to
-Similaris (`57268OquesereuSolutions.Similaris`) and the Store signs the package
-after certification. Increase the four-part version for every submission; do
-not reuse a version already submitted.
+Partner Center. Store identity values are read from the ignored `.env` file
+and injected into the generated manifest; they are not stored in source
+control. Store packages are built only on the local Windows computer and are
+never generated or published by the GitHub workflows. The Store signs the
+package after certification. Increase the four-part version for every
+submission; do not reuse a version already submitted.
 
 ## Build for Linux/WSL
 
@@ -296,12 +300,16 @@ Depois de gerar `dist\Similaris.exe`, crie o pacote MSIX x64 no PowerShell de
 um computador com o Windows 10/11 SDK instalado:
 
 ```powershell
+Copy-Item .env.example .env
+# Preencha o .env com os valores exatos de Identidade do produto do Partner Center.
 .\build_store_msix.ps1 -Version 0.1.0.0
 ```
 
 Envie `dist\Similaris-Store-0.1.0.0-x64.msixupload` diretamente ao Partner
-Center. O manifesto usa a identidade oficial atribuída ao Similaris
-(`57268OquesereuSolutions.Similaris`) e a Store assina o pacote após a
+Center. Os dados de identidade são lidos do `.env` ignorado e injetados no
+manifesto gerado; eles não ficam no controle de versão. Os pacotes da Store são
+gerados somente no computador Windows local e nunca são construídos ou
+publicados pelos workflows do GitHub. A Store assina o pacote após a
 certificação. A versão de quatro partes deve ser aumentada a cada envio.
 
 ### Construção para Linux/WSL
@@ -446,13 +454,18 @@ Después de generar `dist\Similaris.exe`, cree el paquete MSIX x64 desde
 PowerShell en un equipo con Windows 10/11 SDK instalado:
 
 ```powershell
+Copy-Item .env.example .env
+# Complete .env con los valores exactos de Identidad del producto de Partner Center.
 .\build_store_msix.ps1 -Version 0.1.0.0
 ```
 
 Suba `dist\Similaris-Store-0.1.0.0-x64.msixupload` directamente a Partner
-Center. El manifiesto utiliza la identidad oficial asignada a Similaris
-(`57268OquesereuSolutions.Similaris`) y la Store firma el paquete después de la
-certificación. La versión de cuatro partes debe aumentar con cada envío.
+Center. Los datos de identidad se leen desde el archivo `.env` ignorado y se
+inyectan en el manifiesto generado; no se guardan en el control de versiones.
+Los paquetes de la Store se generan únicamente en el equipo Windows local y
+nunca se compilan ni se publican mediante los workflows de GitHub. La Store
+firma el paquete después de la certificación. La versión de cuatro partes debe
+aumentar con cada envío.
 
 ### Construcción para Linux/WSL
 

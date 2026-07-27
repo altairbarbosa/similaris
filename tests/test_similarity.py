@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from PIL import Image, ImageDraw, ImageEnhance
 
+import app
 import photo_organizer
 
 
@@ -47,6 +48,11 @@ class SimilarityPipelineTests(unittest.TestCase):
             photo_organizer.analyze(first), photo_organizer.analyze(second), "balanced"
         )
 
+    def test_translation_catalogs_have_matching_keys(self) -> None:
+        english_keys = set(app.TEXT["en-US"])
+        self.assertEqual(set(app.TEXT["pt-BR"]), english_keys)
+        self.assertEqual(set(app.TEXT["es-ES"]), english_keys)
+
     def test_exact_copy_uses_sha256(self) -> None:
         original = self.save("original.png", sample_image())
         copy = self.folder / "copy.png"
@@ -54,6 +60,15 @@ class SimilarityPipelineTests(unittest.TestCase):
         evidence = self.analyze_pair(original, copy)
         self.assertTrue(evidence.duplicate)
         self.assertEqual(evidence.method, "sha256")
+
+    def test_one_pixel_wide_image_does_not_crash_orb(self) -> None:
+        tiny = self.save("one-pixel-wide.png", Image.new("RGB", (1, 100), "white"))
+
+        analyzed = photo_organizer.analyze(tiny)
+
+        self.assertEqual((analyzed.largura, analyzed.altura), (1, 100))
+        self.assertEqual(analyzed.keypoints, ())
+        self.assertIsNone(analyzed.descriptors)
 
     def test_recompressed_photo_is_duplicate(self) -> None:
         original = self.save("original.png", sample_image())
